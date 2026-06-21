@@ -1,3 +1,10 @@
+export interface Competency {
+  id: string;
+  label: string;
+  colorClass: string; // Tailwind class, e.g., 'bg-secondary'
+  shadowColor: string; // e.g., 'shadow-[0_0_8px_#00FF00]'
+}
+
 export interface Certificate {
   id: string;
   title: string;
@@ -26,6 +33,7 @@ export interface ProfileInfo {
   blueTeamBio?: string;
   purpleTeamBio?: string;
   profilePic?: string;
+  competencies: Competency[];
 }
 
 export interface Skill {

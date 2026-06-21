@@ -4,7 +4,7 @@ export const initialProfile: ProfileInfo = {
   name: "Zabih Ullah",
   title: "Aspiring Cybersecurity Professional",
   location: "Islamabad, Pakistan",
-  email: "zabihullah9046@gmail.com",
+  email: "system-admin@cyber-nodes.io",
   github: "github.com/Zabih1",
   linkedin: "linkedin.com/in/zabih-ullah-563b712ba", // Custom LinkedIn link initially
   twitter: "x.com/zabihullah",
@@ -12,7 +12,27 @@ export const initialProfile: ProfileInfo = {
   redTeamBio: "Currently building defensive mechanics through an offensive lens (Red Teaming). Specializing in automated C++ tracers, custom shell vulnerability auditing, Debian terminal diagnostics, and solving complex reverse engineering CTF vectors.",
   blueTeamBio: "Highlighting corporate security protection (Blue Teaming). Specializing in designing safe relational schemas to prevent SQL injections, auditing network perimeters using Wireshark packets, implementing firewalls, and managing server incidents.",
   purpleTeamBio: "Balancing both red-team penetration scans and blue-team system hardening (Purple Teaming). Aiming to continuously audit and protect digital infrastructures against evolving threats while seeking an entry internship.",
-  profilePic: "https://lh3.googleusercontent.com/aida-public/AB6AXuAyRfk862E64ISMGMNoE6ApQUAB9FK0_sxj1YwPgyQjJgy61k5yKVGmoxotUCgjKCfW72s5l0Pf-UNjAniHN5OuAwoeEFy1hIWRxJn3F-xO1H3QNvD-kDd7sttDIESC0Rxf8L16Vk9e1iJKHuKgXaRXJYZ3fk6hXZCrgjUt-dvAf1T-AXLm3dmeYhIE6WUMD_6_RlAO-P38kxAJ4oT9aTCBlKaUfGGwIp0vb4NHumwCBkmeo6tRNxbh3wSO2UJV46ym2xgL1v2wL20"
+  profilePic: "https://lh3.googleusercontent.com/aida-public/AB6AXuAyRfk862E64ISMGMNoE6ApQUAB9FK0_sxj1YwPgyQjJgy61k5yKVGmoxotUCgjKCfW72s5l0Pf-UNjAniHN5OuAwoeEFy1hIWRxJn3F-xO1H3QNvD-kDd7sttDIESC0Rxf8L16Vk9e1iJKHuKgXaRXJYZ3fk6hXZCrgjUt-dvAf1T-AXLm3dmeYhIE6WUMD_6_RlAO-P38kxAJ4oT9aTCBlKaUfGGwIp0vb4NHumwCBkmeo6tRNxbh3wSO2UJV46ym2xgL1v2wL20",
+  competencies: [
+    {
+      id: '1',
+      label: 'Purple Teaming',
+      colorClass: 'bg-secondary',
+      shadowColor: 'shadow-[0_0_8px_#00FF00]'
+    },
+    {
+      id: '2',
+      label: 'Penetration Testing',
+      colorClass: 'bg-error',
+      shadowColor: 'shadow-[0_0_8px_#FF3333]'
+    },
+    {
+      id: '3',
+      label: 'Linux & InfoSec',
+      colorClass: 'bg-primary-fixed',
+      shadowColor: 'shadow-[0_0_8px_#FF5C00]'
+    }
+  ]
 };
 
 export const initialSkills: Skill[] = [

@@ -1,11 +1,62 @@
-import { useState, useEffect } from 'react';
-import { Terminal, Cpu, Check } from 'lucide-react';
-import { motion } from 'motion/react';
+import { useState, useEffect, useRef } from 'react';
+import { Terminal, Cpu, Check, Shield, Lock, Activity } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { playBootAudioSequence, playClickSound } from '../utils/audio';
 
 interface BootSequenceProps {
   onComplete: () => void;
 }
+
+const MatrixRain = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+~`|}{[]:;?><,./-=";
+    const fontSize = 14;
+    const columns = Math.floor(width / fontSize);
+    const drops = new Array(columns).fill(1).map(() => Math.floor(Math.random() * -100));
+
+    const draw = () => {
+      ctx.fillStyle = "rgba(5, 5, 5, 0.15)";
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = "#00FF00";
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = characters.charAt(Math.floor(Math.random() * characters.length));
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > height && Math.random() > 0.985) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    };
+
+    const interval = setInterval(draw, 33);
+    const handleResize = () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="absolute inset-0 opacity-[0.12] pointer-events-none" />;
+};
 
 export default function BootSequence({ onComplete }: BootSequenceProps) {
   const [percent, setPercent] = useState(0);
@@ -18,7 +69,7 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
     { text: "STABILIZING RELATIONAL DATABASE SCHEMAS...", duration: 140 },
     { text: "SECURING PORT 3000 WEBSOCKETS...", duration: 130 },
     { text: "INITIALIZING RE-ACTIVE CYBER MATRIX...", duration: 170 },
-    { text: "DECRYPTED ZABIH_ULLAH.NODE SUCCESSFULLY.", duration: 130 }
+    { text: "DECRYPTED SYSTEM NODES SUCCESSFULLY.", duration: 130 }
   ];
 
   useEffect(() => {
@@ -35,7 +86,7 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
         // Play terminal step click beep
         playClickSound();
 
-        setLogs(prev => [...prev, `[ OK ] ${step.text}`]);
+        setLogs(prev => [...prev.slice(-15), `[ OK ] ${step.text}`]);
         setCurrentStep(currentLogIndex);
         
         // Progress percent boost
@@ -75,71 +126,137 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-100 bg-[#050505] text-[#00FF00] font-mono flex flex-col items-center justify-center p-6 select-none overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-[#050505] text-[#00FF00] font-mono flex flex-col items-center justify-center p-6 select-none overflow-hidden">
+      {/* Matrix Code Rain Background */}
+      <MatrixRain />
+
       {/* Absolute CRT scanning line effect */}
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.04),rgba(0,255,0,0.01),rgba(0,0,255,0.04))] bg-[size:100%_4px,3px_100%] z-50 opacity-30 pointer-events-none" />
       
       {/* Glitzy Cyberpunk Grid Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#00ff0005_1px,transparent_1px),linear-gradient(to_bottom,#00ff0005_1px,transparent_1px)] bg-[size:30px_30px] opacity-20 pointer-events-none" />
 
+      {/* Floating Animated Hacker Icons */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+        {[...Array(5)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ x: Math.random() * 100 + "%", y: "110%" }}
+            animate={{ 
+              y: "-10%",
+              x: (Math.random() * 100) + "%",
+              rotate: 360
+            }}
+            transition={{ 
+              duration: 15 + Math.random() * 10, 
+              repeat: Infinity,
+              ease: "linear",
+              delay: i * 3
+            }}
+            className="absolute"
+          >
+            {i % 2 === 0 ? <Shield className="w-12 h-12" /> : <Lock className="w-12 h-12" />}
+          </motion.div>
+        ))}
+      </div>
+
       <motion.div 
-        initial={{ scale: 0.96, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-md bg-[#0a0a0a]/90 border border-[#00FF00]/30 rounded-xl shadow-[0_0_25px_rgba(0,255,0,0.1)] overflow-hidden flex flex-col relative z-20"
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="w-full max-w-lg bg-[#0a0a0a]/90 border border-[#00FF00]/40 rounded-xl shadow-[0_0_50px_rgba(0,255,0,0.15)] overflow-hidden flex flex-col relative z-20 backdrop-blur-md"
       >
         {/* Terminal Header */}
-        <div className="bg-[#121212] border-b border-[#00FF00]/20 px-4 py-2.5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Terminal className="w-3.5 h-3.5 text-[#00FF00] animate-pulse" />
-            <span className="text-[10px] font-bold tracking-widest text-[#00FF00]/80 uppercase">
-              DECRYPTING PORTFOLIO NODE
-            </span>
+        <div className="bg-[#121212] border-b border-[#00FF00]/25 px-5 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Cpu className="w-4 h-4 text-[#00FF00] animate-pulse" />
+              <motion.div 
+                animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute inset-0 bg-[#00FF00] rounded-full blur-sm"
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold tracking-[0.2em] text-[#00FF00] uppercase">
+                SYSTEM OVERRIDE IN PROGRESS
+              </span>
+              <span className="text-[7px] text-[#00FF00]/50 font-mono">NODE_IDENTIFIER: 0x74860FD3</span>
+            </div>
           </div>
-          <div className="flex gap-1">
-            <div className="w-2 h-2 rounded-full bg-[#00FF00]/40 animate-pulse" />
+          <div className="flex gap-2">
+            <Activity className="w-4 h-4 text-primary-fixed/40 animate-bounce" />
+            <div className="w-2.5 h-2.5 rounded-full bg-[#00FF00] shadow-[0_0_8px_#00FF00] animate-pulse" />
           </div>
         </div>
 
         {/* Console Body */}
-        <div className="p-5 space-y-4">
+        <div className="p-6 space-y-5">
           {/* Scrolling simulated logs box */}
-          <div className="bg-[#050505] border border-[#00FF00]/10 rounded-lg p-3.5 h-32 overflow-y-auto text-[10px] space-y-1 font-mono scrollbar-none">
-            {logs.map((log, index) => (
-              <div key={index} className="flex gap-2 items-center text-[#00FF00]/80">
-                <span className="leading-relaxed">{log}</span>
-              </div>
-            ))}
+          <div className="bg-[#050505] border border-[#00FF00]/15 rounded-lg p-4 h-40 overflow-y-auto text-[11px] space-y-1.5 font-mono scrollbar-none shadow-inner">
+            <AnimatePresence mode="popLayout">
+              {logs.map((log, index) => (
+                <motion.div 
+                  key={index}
+                  initial={{ opacity: 0, x: -5 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="flex gap-3 items-center text-[#00FF00]/90"
+                >
+                  <span className="text-[#00FF00]/40 font-bold">[{new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]</span>
+                  <span className="leading-relaxed">{log}</span>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            <div className="animate-pulse inline-block w-2 h-3.5 bg-[#00FF00]/60 ml-1 translate-y-0.5" />
           </div>
 
           {/* Progress Section */}
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-[10px] font-bold font-mono">
-              <span className="text-[#FF5C00] uppercase tracking-wider">
-                DECRYPTING: {percent}%
+          <div className="space-y-2">
+            <div className="flex justify-between text-[11px] font-bold font-mono">
+              <span className="text-[#00FF00] flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FF00] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FF00]"></span>
+                </span>
+                DECODING PROTOCOL: {percent}%
               </span>
-              <span className="text-[#00FF00]/60">PORT 3000 // HOST 0.0.0.0</span>
+              <span className="text-[#00FF00]/40 tracking-wider">BIT_STREAM_ACTIVE</span>
             </div>
-            <div className="w-full bg-[#111] h-1.5 rounded-full overflow-hidden border border-[#00FF00]/10">
-              <div 
-                className="bg-[#00FF00] h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_8px_#00FF00]"
-                style={{ width: `${percent}%` }}
+            <div className="w-full bg-[#111] h-2.5 rounded-full overflow-hidden border border-[#00FF00]/20 p-[2px]">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${percent}%` }}
+                className="bg-[linear-gradient(90deg,#00FF0044_0%,#00FF00_50%,#00FF0044_100%)] bg-[length:200%_100%] h-full rounded-full shadow-[0_0_15px_#00FF0066]"
+                style={{ 
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 2s infinite linear'
+                }}
               />
             </div>
           </div>
         </div>
 
         {/* Terminal Footer */}
-        <div className="bg-[#121212] border-t border-[#00FF00]/15 px-4 py-2 flex items-center justify-between text-[8px] text-[#00FF00]/40 select-none">
-          <span>AES-256 ENCRYPTED</span>
+        <div className="bg-[#121212] border-t border-[#00FF00]/20 px-5 py-3 flex items-center justify-between text-[9px] text-[#00FF00]/50 select-none">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1"><Shield className="w-3 h-3" /> SECURED</span>
+            <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> AES-256-GCM</span>
+          </div>
           <button 
             onClick={onComplete}
-            className="text-[9px] hover:text-white transition-colors cursor-pointer flex items-center gap-1"
+            className="text-[10px] hover:text-white transition-all cursor-pointer flex items-center gap-1.5 bg-[#00FF00]/5 border border-[#00FF00]/20 px-2 py-0.5 rounded hover:bg-[#00FF00]/20"
           >
-            Skip [Enter] ⏭
+            BYPASS_AUTH [ESC] ⏭
           </button>
         </div>
       </motion.div>
+
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+      `}</style>
     </div>
   );
 }

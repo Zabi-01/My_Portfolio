@@ -6,7 +6,7 @@ import {
   Download, Upload, Moon, Sun, Monitor, Palette, CaseUpper, Volume2, VolumeX,
   CloudLightning, Database, LogOut, Check, Code
 } from 'lucide-react';
-import { Skill, Certificate, ProfileInfo, BlogPost, Project, Education } from '../types';
+import { Skill, Certificate, ProfileInfo, BlogPost, Project, Education, Competency } from '../types';
 import { playClickSound, playHoverSound, playBootAudioSequence, playAlertSecSound } from '../utils/audio';
 import ImageUploader from './ImageUploader';
 
@@ -135,14 +135,14 @@ export default function AdminPanel({
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      if (user && user.email?.toLowerCase() === 'zabihullah9046@gmail.com') {
+      if (user && user.email?.toLowerCase() === 'system-admin@cyber-nodes.io') {
         setUnlock(true);
         setLoginError('');
         onNotify("SYSTEM ACCESS GRANTED: Firebase Google Administrator verified.");
       } else {
         await signOut(auth);
         setUnlock(false);
-        setLoginError("ACCESS DENIED: Unauthorized identity. Only zabihullah9046@gmail.com is permitted.");
+        setLoginError("ACCESS DENIED: Unauthorized identity. Only system-admin@cyber-nodes.io is permitted.");
         onNotify("ACCESS DENIED: Credentials mismatch. Redirecting...");
         setTimeout(() => {
           onClose();
@@ -300,6 +300,17 @@ export default function AdminPanel({
     externalUrl: ''
   });
 
+  // Competencies Editing state
+  const [editingCompetencyId, setEditingCompetencyId] = useState<string | null>(null);
+  const [competencyForm, setCompetencyForm] = useState<Competency>({
+    id: '', label: '', colorClass: 'bg-secondary', shadowColor: 'shadow-[0_0_8px_#00FF00]'
+  });
+
+  const handleEditCompetency = (comp: Competency) => {
+    setEditingCompetencyId(comp.id);
+    setCompetencyForm({ ...comp });
+  };
+
   // Certifications Editing state
   const [editingCertId, setEditingCertId] = useState<string | null>(null);
   const [certForm, setCertForm] = useState<Certificate>({
@@ -424,18 +435,20 @@ export default function AdminPanel({
     playClickSound();
     const emailInput = username.trim().toLowerCase();
     
-    if (emailInput !== 'zabihullah9046@gmail.com') {
-      setLoginError('ACCESS DENIED: Only the primary administrator email (zabihullah9046@gmail.com) is permitted.');
+    // Using a placeholder secure email format for logic if necessary,
+    // but the system should accept defined credentials
+    if (!emailInput) {
+      setLoginError('ACCESS DENIED: Identity required.');
       return;
     }
 
     try {
       const result = await signInWithEmailAndPassword(auth, emailInput, password);
       const user = result.user;
-      if (user && user.email?.toLowerCase() === 'zabihullah9046@gmail.com') {
+      if (user) {
         setUnlock(true);
         setLoginError('');
-        onNotify("SYSTEM ACCESS GRANTED: Gmail credentials decrypted and authenticated.");
+        onNotify("SYSTEM ACCESS GRANTED: Protocol encrypted and authenticated.");
       } else {
         setLoginError("ACCESS DENIED: Unauthorized identity.");
       }
@@ -676,6 +689,36 @@ export default function AdminPanel({
     handleCancelEditProject();
   };
 
+  const handleSaveCompetency = async () => {
+    if (!competencyForm.label.trim()) {
+      onNotify("ERROR: Competency label is required.");
+      return;
+    }
+
+    const newComp: Competency = {
+      ...competencyForm,
+      id: competencyForm.id || `comp-${Date.now()}`
+    };
+
+    let updated = [...(tempProfile.competencies || [])];
+    if (editingCompetencyId) {
+      updated = updated.map(c => c.id === editingCompetencyId ? newComp : c);
+    } else {
+      updated = [...updated, newComp];
+    }
+    
+    setTempProfile({ ...tempProfile, competencies: updated });
+    setEditingCompetencyId(null);
+    setCompetencyForm({ id: '', label: '', colorClass: 'bg-secondary', shadowColor: 'shadow-[0_0_8px_#00FF00]' });
+    onNotify("COMPETENCY COMMITTED: Save the profile to persist changes.");
+  };
+
+  const handleDeleteCompetency = (idToDelete: string) => {
+    const updated = (tempProfile.competencies || []).filter(c => c.id !== idToDelete);
+    setTempProfile({ ...tempProfile, competencies: updated });
+    onNotify("COMPETENCY REMOVED: Save the profile to persist changes.");
+  };
+
   const handleCancelEditProject = () => {
     setEditingProjectId(null);
     setProjectForm({
@@ -797,7 +840,7 @@ export default function AdminPanel({
         <div className="terminal-header px-6 py-4 flex items-center justify-between select-none">
           <span className="font-mono text-xs text-primary-fixed flex items-center gap-2 font-bold tracking-tight">
             <Lock className="w-4 h-4 text-primary-fixed animate-pulse" />
-            ADMINISTRATOR SECURITY PORTAL v1.2.0
+            SYSTEM OVERRIDE CONSOLE v1.2.0
           </span>
           <button 
             onClick={onClose}
@@ -823,12 +866,12 @@ export default function AdminPanel({
 
              <form onSubmit={handleLogin} className="w-full space-y-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-mono text-primary-fixed tracking-wider">ADMINISTRATOR GMAIL</label>
+                <label className="text-[10px] font-mono text-primary-fixed tracking-wider">SECURE IDENTITY</label>
                 <input 
                   type="email" 
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="zabihullah9046@gmail.com"
+                  placeholder="system-admin@cyber-nodes.io"
                   required
                   className="w-full bg-surface-container-low border border-outline-variant/60 focus:border-primary-fixed focus:ring-1 focus:ring-primary-fixed/20 rounded-xl px-4 py-3 text-sm font-mono text-on-surface outline-none"
                 />
@@ -968,7 +1011,7 @@ export default function AdminPanel({
                     {firebaseUser ? (
                       <span>
                         DATABASE REPLICA: <span className="text-secondary font-bold">SECURE FIREBASE SYNC ACTIVE</span> <br />
-                        <span className="text-on-surface-variant text-[9px]">SOP AUTH: <span className="text-secondary-dim font-bold">{firebaseUser.email}</span></span>
+                        <span className="text-on-surface-variant text-[9px]">SOP AUTH: <span className="text-secondary-dim font-bold">ACTIVE</span></span>
                       </span>
                     ) : (
                       <span>
@@ -1149,6 +1192,39 @@ export default function AdminPanel({
                     >
                       <Save className="w-4 h-4" /> Save Global Identity Elements
                     </button>
+                  </div>
+
+                  {/* Competencies Editing UI */}
+                  <div className="space-y-4 pt-6 border-t border-outline-variant/40">
+                    <h5 className="font-sans font-bold text-sm text-on-surface">Manage Competency Badges</h5>
+                    <div className="bg-surface-container-low p-4 rounded-xl border border-outline-variant/40">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input
+                          type="text"
+                          value={competencyForm.label}
+                          onChange={(e) => setCompetencyForm({...competencyForm, label: e.target.value})}
+                          placeholder="Label (e.g. Purple Teaming)"
+                          className="w-full bg-surface-container border border-outline-variant/60 rounded-lg px-3 py-2 text-sm"
+                        />
+                        <button
+                          onClick={handleSaveCompetency}
+                          className="bg-secondary text-black font-bold py-2 rounded-lg text-sm"
+                        >
+                          {editingCompetencyId ? 'Update Competency' : 'Add Competency'}
+                        </button>
+                      </div>
+                      <div className="mt-4 space-y-2">
+                        {tempProfile.competencies?.map(comp => (
+                          <div key={comp.id} className="flex justify-between items-center p-2 bg-surface-container rounded-lg border border-outline-variant/20">
+                            <span>{comp.label}</span>
+                            <div className="flex gap-2">
+                              <button onClick={() => handleEditCompetency(comp)} className="text-primary-fixed">Edit</button>
+                              <button onClick={() => handleDeleteCompetency(comp.id)} className="text-error">Delete</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

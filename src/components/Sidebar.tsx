@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User, Terminal, Award, Mail, FileDown, Github, Linkedin, Menu, X, Link as LinkIcon, Code, ShieldAlert, Key, Twitter, BookOpen, Image } from 'lucide-react';
 import { ProfileInfo } from '../types';
 import { playClickSound, playHoverSound } from '../utils/audio';
+import { motion } from 'motion/react';
 
 interface SidebarProps {
   activeSection: string;
@@ -31,6 +32,25 @@ export default function Sidebar({
   isAdmin = false
 }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : false);
+  const menuListRef = useRef<HTMLUListElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const el = document.getElementById(`nav-${activeSection}`);
+    if (el && menuListRef.current) {
+      el.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest'
+      });
+    }
+  }, [activeSection]);
 
   const menuItems = [
     { id: 'summary', label: 'Summary', icon: User },
@@ -89,13 +109,14 @@ export default function Sidebar({
       )}
 
       {/* Side Navigation Bar (Dual Responsive Layout) */}
-      <nav 
-        className={`fixed top-0 bottom-0 left-0 h-full w-[300px] bg-surface-container-lowest/90 backdrop-blur-2xl border-r border-outline-variant py-12 md:py-16 flex flex-col z-45 overflow-y-auto transition-transform duration-300 md:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } shadow-2xl`}
+      <motion.nav 
+        initial={{ x: -300, opacity: 0 }}
+        animate={{ x: (isDesktop || isOpen) ? 0 : -300, opacity: (isDesktop || isOpen) ? 1 : 0 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className={`fixed top-0 bottom-0 left-0 h-full w-[300px] bg-surface-container-lowest border-r border-outline-variant flex flex-col z-45 shadow-2xl py-6 md:py-8`}
       >
         {/* Profile Card Block */}
-        <div className="px-8 flex flex-col items-center mb-10 mt-6 md:mt-0">
+        <div className="px-8 flex flex-col items-center mb-6 mt-4 md:mt-0">
           <div className="relative w-32 h-32 rounded-3xl overflow-hidden mb-6 border-2 border-primary-fixed shadow-[0_0_20px_rgba(255,92,0,0.35)] transition-all hover:shadow-[0_0_25px_var(--color-primary-fixed)] duration-300 group">
             <img 
               className="w-full h-full object-cover select-none scale-125 hover:scale-135 transition-transform duration-500 origin-center filter contrast-[1.04] brightness-[1.03]" 
@@ -115,14 +136,14 @@ export default function Sidebar({
           </p>
         </div>
 
-        {/* Sidebar Navigation Items */}
-        <ul className="flex flex-col w-full font-mono text-sm">
+        <ul ref={menuListRef} className="flex flex-col w-full font-mono text-sm flex-1 overflow-y-auto">
           {menuItems.map((item) => {
             const IconComponent = item.icon;
             const isActive = activeSection === item.id;
             return (
               <li key={item.id}>
                 <button
+                  id={`nav-${item.id}`}
                   onClick={() => handleNavClick(item.id)}
                   onMouseEnter={playHoverSound}
                   className={`flex items-center gap-4 w-full text-left px-8 py-4 transition-all duration-200 border-l-4 cursor-pointer outline-none ${
@@ -138,7 +159,9 @@ export default function Sidebar({
             );
           })}
         </ul>
-
+        
+        {/* Placeholder removed */}
+        
         {/* Bottom Utility Panel */}
         <div className="mt-auto px-8 w-full flex flex-col gap-3">
           {/* Quick Mode Toggler */}
@@ -147,8 +170,9 @@ export default function Sidebar({
             <button
               onClick={() => {
                 playClickSound();
-                const isDark = themeScheme.startsWith('dark');
-                const nextScheme = isDark ? 'light-protocol' : 'dark-cosmic';
+                const themes = ['dark-cosmic', 'light-sleek', 'light-protocol', 'dark-nordic'];
+                const currentIndex = themes.indexOf(themeScheme);
+                const nextScheme = themes[(currentIndex + 1) % themes.length];
                 setThemeScheme(nextScheme);
                 localStorage.setItem('cyber_theme_scheme', nextScheme);
               }}
@@ -156,7 +180,7 @@ export default function Sidebar({
               className="px-2 py-0.5 bg-surface-container hover:bg-surface-container-high border border-outline-variant/60 hover:border-primary-fixed text-primary-fixed rounded-lg cursor-pointer text-[10px] font-bold transition-all"
               title="Instant mode toggler"
             >
-              [ SHIFT_{themeScheme.startsWith('dark') ? 'LIGHT' : 'DARK'} ]
+              [ CYCLE_THEME ]
             </button>
           </div>
 
@@ -262,7 +286,7 @@ export default function Sidebar({
             )}
           </div>
         </div>
-      </nav>
+      </motion.nav>
     </>
   );
 }

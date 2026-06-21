@@ -16,6 +16,8 @@ import ResumeBuilder from './components/ResumeBuilder';
 import AdminPanel from './components/AdminPanel';
 import BootSequence from './components/BootSequence';
 import TechDivider from './components/TechDivider';
+import CustomCursor from './components/CustomCursor';
+import ScrollControls from './components/ScrollControls';
 import { initialProfile, initialSkills, initialCertificates, initialBlogs, initialProjects, initialEducation } from './initialData';
 import { ProfileInfo, Skill, Certificate, BlogPost, Project, Education } from './types';
 import { playClickSound, playHoverSound, getSystemAudioEnabled, setSystemAudioEnabled } from './utils/audio';
@@ -230,6 +232,25 @@ export default function App() {
       '--color-error': '#DC2626',
       '--color-error-container': '#FEE2E2',
       '--color-success': '#16A34A'
+    },
+    'light-sleek': {
+      '--color-primary-fixed': '#2563EB',
+      '--color-primary-fixed-dim': '#1D4ED8',
+      '--color-on-primary-fixed': '#FFFFFF',
+      '--color-secondary': '#64748B',
+      '--color-on-secondary': '#FFFFFF',
+      '--color-background-dark': '#FFFFFF',
+      '--color-surface-container': '#FFFFFF',
+      '--color-surface-container-low': '#F8FAFC',
+      '--color-surface-container-lowest': '#FFFFFF',
+      '--color-surface-container-high': '#F1F5F9',
+      '--color-surface-container-highest': '#E2E8F0',
+      '--color-on-surface': '#0F172A',
+      '--color-on-surface-variant': '#475569',
+      '--color-outline-variant': '#CBD5E1',
+      '--color-error': '#EF4444',
+      '--color-error-container': '#FEE2E2',
+      '--color-success': '#22C55E'
     }
   };
 
@@ -424,6 +445,7 @@ export default function App() {
 
   // ScrollSpy Logic to automatically highlight Active Section in Navigation
   useEffect(() => {
+    window.history.scrollRestoration = 'manual';
     const handleScroll = () => {
       const sections = ['summary', 'skills', 'certifications', 'blogs', 'contact'];
       const scrollPosition = window.scrollY + 200; // Offset
@@ -452,15 +474,25 @@ export default function App() {
     }, 4000);
   };
 
+  useEffect(() => {
+    if (!isBooting) {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }, 200);
+    }
+  }, [isBooting]);
+
   if (isBooting) {
     return <BootSequence onComplete={() => {
+      window.scrollTo(0, 0);
       setIsBooting(false);
-      setTimeout(() => window.scrollTo(0, 0), 100);
     }} />;
   }
 
   return (
     <div className="min-h-screen text-on-surface font-sans selection:bg-primary-fixed/30 selection:text-white flex flex-col md:flex-row relative">
+      <CustomCursor />
+      <ScrollControls />
       {/* Falling Particle Shader Background */}
       <CyberCanvas themeScheme={themeScheme} bgStyle={bgStyle} />
 
@@ -516,18 +548,12 @@ export default function App() {
 
           {/* Core competency Status Badges */}
           <motion.div variants={itemVariants} className="flex flex-wrap gap-3 select-none">
-            <span className="px-3.5 py-1.5 bg-surface-container/90 backdrop-blur border border-outline-variant/50 rounded-xl text-xs font-mono text-on-surface-variant flex items-center gap-2 shadow-sm hover:border-secondary/50 transition-colors duration-200">
-              <span className="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_#00FF00]" /> 
-              Purple Teaming
-            </span>
-            <span className="px-3.5 py-1.5 bg-surface-container/90 backdrop-blur border border-outline-variant/50 rounded-xl text-xs font-mono text-on-surface-variant flex items-center gap-2 shadow-sm hover:border-error/50 transition-colors duration-200">
-              <span className="w-2 h-2 rounded-full bg-error shadow-[0_0_8px_#FF3333]" /> 
-              Penetration Testing
-            </span>
-            <span className="px-3.5 py-1.5 bg-surface-container/90 backdrop-blur border border-outline-variant/50 rounded-xl text-xs font-mono text-on-surface-variant flex items-center gap-2 shadow-sm hover:border-primary-fixed/50 transition-colors duration-200">
-              <span className="w-2 h-2 rounded-full bg-primary-fixed shadow-[0_0_8px_#FF5C00]" /> 
-              Linux & InfoSec
-            </span>
+            {(profile.competencies || []).map((comp) => (
+              <span key={comp.id} className="px-3.5 py-1.5 bg-surface-container/90 backdrop-blur border border-outline-variant/50 rounded-xl text-xs font-mono text-on-surface-variant flex items-center gap-2 shadow-sm hover:border-secondary/50 transition-colors duration-200">
+                <span className={`w-2 h-2 rounded-full ${comp.colorClass} ${comp.shadowColor}`} /> 
+                {comp.label}
+              </span>
+            ))}
           </motion.div>
 
           {/* Interactive Live Shell console Terminal */}
@@ -702,7 +728,7 @@ export default function App() {
 
           {/* Categories Selector */}
           <motion.div variants={itemVariants} className="flex flex-wrap gap-2 select-none">
-            {['All', ...Array.from(new Set(blogs.map(b => b.category)))].map((cat) => {
+            {['All', ...Array.from(new Set((blogs || []).map(b => b.category)))].map((cat) => {
               const catStr = String(cat);
               return (
                 <button
@@ -725,7 +751,7 @@ export default function App() {
 
           {/* Blogs list or fallback */}
           <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {blogs
+            {(blogs || [])
               .filter(b => {
                 const matchesCat = selectedBlogCategory === 'All' || b.category === selectedBlogCategory;
                 const matchesSearch = b.title.toLowerCase().includes(blogSearchQuery.toLowerCase()) || 
@@ -805,7 +831,7 @@ export default function App() {
                 </div>
               ))}
             
-            {blogs.filter(b => {
+            {(blogs || []).filter(b => {
               const matchesCat = selectedBlogCategory === 'All' || b.category === selectedBlogCategory;
               const matchesSearch = b.title.toLowerCase().includes(blogSearchQuery.toLowerCase()) || 
                                    b.summary.toLowerCase().includes(blogSearchQuery.toLowerCase()) ||
@@ -941,7 +967,7 @@ export default function App() {
                 {/* Tags block index bar */}
                 {activeBlogPost.tags && activeBlogPost.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 pt-2 select-none">
-                    {activeBlogPost.tags.map((tag) => (
+                    {(activeBlogPost.tags || []).map((tag) => (
                       <span key={tag} className="text-[10px] font-mono text-secondary hover:text-white bg-secondary/5 border border-secondary/15 hover:border-secondary/35 px-2.5 py-0.5 rounded-lg transition-colors">
                         #{tag.toLowerCase()}
                       </span>
