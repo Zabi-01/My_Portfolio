@@ -86,7 +86,7 @@ export default function AdminPanel({
         if (elapsed > 2 * 60 * 1000) {
           setIsUnlocked(false);
           localStorage.removeItem('admin_login_time');
-          onNotify("SESSION EXPIRED: Admin access timed out (2 min reached). Re-authentication required.");
+          onNotify("SESSION_HALTED: Root access duration exceeded. Security handshake required.");
         }
       }
     }, 5000); // Check every 5 seconds
@@ -139,7 +139,7 @@ export default function AdminPanel({
       if (user && user.email?.toLowerCase() === 'system-admin@cyber-nodes.io') {
         setUnlock(true);
         setLoginError('');
-        onNotify("SYSTEM ACCESS GRANTED: Firebase Google Administrator verified.");
+        onNotify("KERNEL_ACCESS_ALLOWED: Cloud-node administrator identity verified.");
       } else {
         await signOut(auth);
         setUnlock(false);
@@ -168,7 +168,7 @@ export default function AdminPanel({
 
   const handleSeedCloudDatabase = async () => {
     if (!firebaseUser || firebaseUser.email !== 'zabihullah9046@gmail.com') {
-      onNotify("ALARM: Seeding transaction rejected. Administrative cloud privilege required.");
+      onNotify("ALARM: Injection rejected. High-level clearance required.");
       return;
     }
 
@@ -177,7 +177,7 @@ export default function AdminPanel({
     }
 
     setIsSeeding(true);
-    onNotify("CLOUDSYNC: Seeding profile, skills, certificates, and blogs datasets...");
+    onNotify("CLOUDSYNC: Injecting core datasets into remote node...");
 
     try {
       const batchList: Promise<any>[] = [];
@@ -382,13 +382,13 @@ export default function AdminPanel({
     try {
       if (firebaseUser?.email === 'zabihullah9046@gmail.com') {
         await setDoc(doc(db, 'education', readyEdu.id), readyEdu);
-        onNotify("SUCCESS: Education record synced to cloud successfully.");
+        onNotify("SUCCESS: Academic intel synced to upstream node.");
       } else {
         const existing = educations.filter(e => e.id !== newId);
         const newList = [...existing, readyEdu];
         setEducations(newList);
         localStorage.setItem('cyber_educations', JSON.stringify(newList));
-        onNotify("OFFLINE SUCCESS: Education saved locally.");
+        onNotify("OFFLINE_SYNC: Academic intel committed to local buffer.");
       }
       
       setEditingEducationId(null);
@@ -415,7 +415,7 @@ export default function AdminPanel({
     try {
       if (firebaseUser?.email === 'zabihullah9046@gmail.com') {
         await deleteDoc(doc(db, 'education', idToDelete));
-        onNotify("SUCCESS: Cloud Education segment deleted successfully.");
+        onNotify("SUCCESS: Remote academic intel purged.");
       } else {
         const filtered = educations.filter(e => e.id !== idToDelete);
         setEducations(filtered);
@@ -685,7 +685,7 @@ export default function AdminPanel({
         handleFirestoreError(err, OperationType.WRITE, `projects/${finalProject.id}`);
       }
     } else {
-      onNotify("PROJECT SAVED: Saved deployed field operation to local storage.");
+      onNotify("PROJECT_LOCKED: Field operation committed to local buffer.");
     }
     handleCancelEditProject();
   };
@@ -711,13 +711,13 @@ export default function AdminPanel({
     setTempProfile({ ...tempProfile, competencies: updated });
     setEditingCompetencyId(null);
     setCompetencyForm({ id: '', label: '', colorClass: 'bg-secondary', shadowColor: 'shadow-[0_0_8px_#00FF00]' });
-    onNotify("COMPETENCY COMMITTED: Save the profile to persist changes.");
+    onNotify("SECTOR_PATCHED: Commit core identity to finalize.");
   };
 
   const handleDeleteCompetency = (idToDelete: string) => {
     const updated = (tempProfile.competencies || []).filter(c => c.id !== idToDelete);
     setTempProfile({ ...tempProfile, competencies: updated });
-    onNotify("COMPETENCY REMOVED: Save the profile to persist changes.");
+    onNotify("SECTOR_PURGED: Commit core identity to finalize.");
   };
 
   const handleCancelEditProject = () => {
@@ -841,7 +841,7 @@ export default function AdminPanel({
         <div className="terminal-header px-6 py-4 flex items-center justify-between select-none">
           <span className="font-mono text-xs text-primary-fixed flex items-center gap-2 font-bold tracking-tight">
             <Lock className="w-4 h-4 text-primary-fixed animate-pulse" />
-            SYSTEM OVERRIDE CONSOLE v1.2.0
+            ROOT_PROTOCOL_GATEWAY [X-001]
           </span>
           <button 
             onClick={onClose}
@@ -859,27 +859,27 @@ export default function AdminPanel({
             </div>
 
             <div className="space-y-2 text-center">
-              <h3 className="font-bold text-xl tracking-tight text-on-surface">Secure Decryption Matrix</h3>
+              <h3 className="font-bold text-xl tracking-tight text-on-surface">ENCRYPTED KERNEL ACCESS</h3>
               <p className="text-xs text-on-surface-variant leading-relaxed">
-                Unlock writing permission for skills ledger, certification files, bio statements, and network redirection indexes.
+                Decrypting write-buffers requires biometric handshake verification. All packet transactions recorded by active IDS.
               </p>
             </div>
 
              <form onSubmit={handleLogin} className="w-full space-y-4">
               <div className="space-y-1">
-                <label className="text-[10px] font-mono text-primary-fixed tracking-wider">SECURE IDENTITY</label>
+                <label className="text-[10px] font-mono text-primary-fixed tracking-wider">ACCESS_NODE_UID</label>
                 <input 
                   type="email" 
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="system-admin@cyber-nodes.io"
+                  placeholder="sys-admin@nodes.io"
                   required
                   className="w-full bg-surface-container-low border border-outline-variant/60 focus:border-primary-fixed focus:ring-1 focus:ring-primary-fixed/20 rounded-xl px-4 py-3 text-sm font-mono text-on-surface outline-none"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-mono text-primary-fixed tracking-wider">PASSPHRASE CODEKEY</label>
+                <label className="text-[10px] font-mono text-primary-fixed tracking-wider">CIPHER_SEQUENCE</label>
                 <input 
                   type="password" 
                   value={password}
@@ -901,19 +901,19 @@ export default function AdminPanel({
                 type="submit"
                 className="w-full py-3 bg-primary-fixed text-black font-semibold font-mono text-xs rounded-xl hover:bg-primary-fixed-dim transition-all tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Unlock className="w-4 h-4 text-black" /> Evaluate Cryptographic Access
+                <Unlock className="w-4 h-4 text-black" /> EXECUTE_HANDSHAKE
               </button>
             </form>
 
             {/* Google Authentication Option */}
             <div className="w-full pt-1.5 pb-1 border-t border-outline-variant/30 text-center space-y-2 select-none">
-              <span className="text-[10px] font-mono text-secondary font-bold block">[ FIREBASE CRYPTO PORTAL ]</span>
+              <span className="text-[10px] font-mono text-secondary font-bold block">[ REMOTE NODE SYNC ]</span>
               <button 
                 type="button"
                 onClick={handleGoogleLogin}
                 className="w-full py-3 bg-secondary text-black font-semibold font-mono text-xs rounded-xl hover:bg-secondary-dim transition-all tracking-wider uppercase flex items-center justify-center gap-2 cursor-pointer hover:shadow-lg hover:shadow-secondary/15"
               >
-                <CloudLightning className="w-4 h-4 text-black animate-pulse" /> Direct Google Auth Sync
+                <CloudLightning className="w-4 h-4 text-black animate-pulse" /> ESTABLISH_CLOUD_TUNNEL
               </button>
             </div>
           </div>
@@ -931,7 +931,7 @@ export default function AdminPanel({
                     : 'bg-surface-container-high text-on-surface-variant border-outline-variant/40 hover:text-white'
                 }`}
               >
-                <User className="w-3.5 h-3.5" /> [ Profile & Links Ledger ]
+                <User className="w-3.5 h-3.5" /> [ CORE_IDENTITY_BLOB ]
               </button>
 
               <button
@@ -942,7 +942,7 @@ export default function AdminPanel({
                     : 'bg-surface-container-high text-on-surface-variant border-outline-variant/40 hover:text-white'
                 }`}
               >
-                <TerminalIcon className="w-3.5 h-3.5" /> [ Technical Skills CRUD ]
+                <TerminalIcon className="w-3.5 h-3.5" /> [ COMPETENCY_KERNEL ]
               </button>
 
               <button
@@ -953,7 +953,7 @@ export default function AdminPanel({
                     : 'bg-surface-container-high text-on-surface-variant border-outline-variant/40 hover:text-white'
                 }`}
               >
-                <Award className="w-3.5 h-3.5" /> [ Certifications Matrix ]
+                <Award className="w-3.5 h-3.5" /> [ CLEARANCE_LOGS ]
               </button>
 
               <button
@@ -964,7 +964,7 @@ export default function AdminPanel({
                     : 'bg-surface-container-high text-on-surface-variant border-outline-variant/40 hover:text-white'
                 }`}
               >
-                <Palette className="w-3.5 h-3.5" /> [ System Themes & Backups ]
+                <Palette className="w-3.5 h-3.5" /> [ ENVIRONMENT_MATRICES ]
               </button>
 
               <button
@@ -975,7 +975,7 @@ export default function AdminPanel({
                     : 'bg-surface-container-high text-on-surface-variant border-outline-variant/40 hover:text-white'
                 }`}
               >
-                <Code className="w-3.5 h-3.5" /> [ Project Deployments ]
+                <Code className="w-3.5 h-3.5" /> [ FIELD_OPERATIONS ]
               </button>
 
               <button
@@ -986,7 +986,7 @@ export default function AdminPanel({
                     : 'bg-surface-container-high text-on-surface-variant border-outline-variant/40 hover:text-white'
                 }`}
               >
-                <BookOpen className="w-3.5 h-3.5" /> [ Education Log ]
+                <BookOpen className="w-3.5 h-3.5" /> [ KNOWLEDGE_BASE ]
               </button>
 
               <button
@@ -997,7 +997,7 @@ export default function AdminPanel({
                     : 'bg-surface-container-high text-on-surface-variant border-outline-variant/40 hover:text-white'
                 }`}
               >
-                <BookOpen className="w-3.5 h-3.5" /> [ Blogs Intelligence ]
+                <BookOpen className="w-3.5 h-3.5" /> [ INTEL_REPORTS ]
               </button>
             </div>
 
@@ -1011,12 +1011,12 @@ export default function AdminPanel({
                   <div className="font-mono text-[10px] text-on-surface leading-normal">
                     {firebaseUser ? (
                       <span>
-                        DATABASE REPLICA: <span className="text-secondary font-bold">SECURE FIREBASE SYNC ACTIVE</span> <br />
+                        UPSTREAM_SYNC: <span className="text-secondary font-bold">ESTABLISHED</span> <br />
                         <span className="text-on-surface-variant text-[9px]">SOP AUTH: <span className="text-secondary-dim font-bold">ACTIVE</span></span>
                       </span>
                     ) : (
                       <span>
-                        DATABASE REPLICA: <span className="text-primary-fixed font-bold">LOCAL OFFLINE REGISTRY</span> <br />
+                        UPSTREAM_SYNC: <span className="text-primary-fixed font-bold">DECOUPLED [CACHED]</span> <br />
                         <span className="text-on-surface-variant text-[9px]">All changes are cached locally on this client</span>
                       </span>
                     )}
@@ -1029,9 +1029,9 @@ export default function AdminPanel({
                       onClick={handleSeedCloudDatabase}
                       disabled={isSeeding}
                       className="px-2.5 py-1.5 bg-secondary/10 hover:bg-secondary/25 text-secondary border border-secondary/25 hover:border-secondary/50 rounded-lg text-[9px] font-mono font-bold transition-all flex items-center gap-1 cursor-pointer uppercase tracking-wider disabled:opacity-40"
-                      title="Write default datasets to remote Cloud database"
+                      title="Inject default datasets to remote node"
                     >
-                      <Database className="w-3.5 h-3.5" /> {isSeeding ? "SEEDING CLOUD..." : "SEED CLOUD DATABASE"}
+                      <Database className="w-3.5 h-3.5" /> {isSeeding ? "INJECTING PAYLOAD..." : "INJECT_REMOTE_PAYLOAD"}
                     </button>
                   )}
                   
@@ -1040,14 +1040,14 @@ export default function AdminPanel({
                       onClick={handleFirebaseSignOut}
                       className="px-2.5 py-1.5 bg-error/10 hover:bg-error/20 text-error border border-error/25 rounded-lg text-[9px] font-mono font-bold transition-all flex items-center gap-1 cursor-pointer uppercase tracking-wider"
                     >
-                      <LogOut className="w-3.5 h-3.5" /> DECOUPLE SESSION
+                      <LogOut className="w-3.5 h-3.5" /> TERMINATE_TUNNEL
                     </button>
                   ) : (
                     <button
                       onClick={handleGoogleLogin}
                       className="px-2.5 py-1.5 bg-secondary text-black rounded-lg text-[9px] font-mono font-bold transition-all flex items-center gap-1 cursor-pointer hover:bg-secondary-dim uppercase tracking-wider hover:shadow-md hover:shadow-secondary/10"
                     >
-                      <CloudLightning className="w-3.5 h-3.5" /> CONNECT CLOUD SYNC
+                      <CloudLightning className="w-3.5 h-3.5" /> INITIALIZE_GATEWAY
                     </button>
                   )}
                 </div>
@@ -1057,8 +1057,8 @@ export default function AdminPanel({
               {activeTab === 'profile' && (
                 <div className="space-y-6">
                   <div className="border-b border-outline-variant/40 pb-4">
-                    <h4 className="font-sans font-bold text-base text-on-surface">General Identity & Dynamic Redirect Index</h4>
-                    <p className="text-xs text-on-surface-variant">Update primary biography elements, titles, contact records, and social hyperlink references across the entire portfolio layout.</p>
+                    <h4 className="font-sans font-bold text-base text-on-surface">BIOMETRIC_DATA & RE-ROUTE_TABLES</h4>
+                    <p className="text-xs text-on-surface-variant">Injecting modifications to the primary identity blob. These changes propogate globally across the tech-stack nodes.</p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1191,7 +1191,7 @@ export default function AdminPanel({
                       onClick={saveProfile}
                       className="px-6 py-3 bg-primary-fixed hover:bg-white text-[#0A0A0A] font-bold font-mono text-xs rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                     >
-                      <Save className="w-4 h-4" /> Save Global Identity Elements
+                      <Save className="w-4 h-4" /> Commit Core Identity Blob
                     </button>
                   </div>
 
@@ -1211,7 +1211,7 @@ export default function AdminPanel({
                           onClick={handleSaveCompetency}
                           className="bg-secondary text-black font-bold py-2 rounded-lg text-sm"
                         >
-                          {editingCompetencyId ? 'Update Competency' : 'Add Competency'}
+                          {editingCompetencyId ? 'Patch Node Competency' : 'Inject New Sector'}
                         </button>
                       </div>
                       <div className="mt-4 space-y-2">
@@ -1219,8 +1219,8 @@ export default function AdminPanel({
                           <div key={comp.id} className="flex justify-between items-center p-2 bg-surface-container rounded-lg border border-outline-variant/20">
                             <span>{comp.label}</span>
                             <div className="flex gap-2">
-                              <button onClick={() => handleEditCompetency(comp)} className="text-primary-fixed">Edit</button>
-                              <button onClick={() => handleDeleteCompetency(comp.id)} className="text-error">Delete</button>
+                              <button onClick={() => handleEditCompetency(comp)} className="text-primary-fixed uppercase font-bold text-[10px]">RE-SEQUENCE</button>
+                              <button onClick={() => handleDeleteCompetency(comp.id)} className="text-error uppercase font-bold text-[10px]">TERMINATE</button>
                             </div>
                           </div>
                         ))}
@@ -2157,7 +2157,7 @@ export default function AdminPanel({
                         onClick={handleSaveBlog}
                         className="px-5 py-2.5 bg-primary-fixed hover:bg-white text-black text-xs font-mono font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
                       >
-                        <Save className="w-4 h-4" /> Save Blog Post Entry
+                        <Save className="w-4 h-4" /> Commit Intel Report
                       </button>
                     </div>
                   </div>
@@ -2195,16 +2195,16 @@ export default function AdminPanel({
                               <button 
                                 onClick={() => handleEditBlog(b)}
                                 className="p-2 hover:bg-surface-container hover:text-primary-fixed rounded-xl transition-colors text-on-surface-variant cursor-pointer flex items-center gap-1.5 text-xs font-mono"
-                                title="Edit Blog"
+                                title="TERMINAL_PATCH"
                               >
-                                <Edit3 className="w-4 h-4" /> Edit
+                                <Edit3 className="w-4 h-4" /> PATCH
                               </button>
                               <button 
                                 onClick={() => handleDeleteBlog(b.id)}
                                 className="p-2 hover:bg-surface-container hover:text-[#FF3333] rounded-xl transition-colors text-on-surface-variant cursor-pointer flex items-center gap-1.5 text-xs font-mono"
-                                title="Delete Blog"
+                                title="PURGE_REPORT"
                               >
-                                <Trash2 className="w-4 h-4" /> Erase
+                                <Trash2 className="w-4 h-4" /> PURGE
                               </button>
                             </div>
                           </div>
@@ -2316,7 +2316,7 @@ export default function AdminPanel({
                         onClick={handleSaveEducation}
                         className="px-5 py-2.5 bg-primary-fixed hover:bg-white text-black text-xs font-mono font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
                       >
-                        <Save className="w-4 h-4" /> Save Education Record
+                        <Save className="w-4 h-4" /> Log Knowledge Acquisition
                       </button>
                     </div>
                   </div>
@@ -2348,16 +2348,16 @@ export default function AdminPanel({
                               <button 
                                 onClick={() => handleEditEducation(e)}
                                 className="p-2 hover:bg-surface-container hover:text-primary-fixed rounded-xl transition-colors text-on-surface-variant cursor-pointer flex items-center gap-1.5 text-xs font-mono"
-                                title="Edit Record"
+                                title="LEDGER_MOD"
                               >
-                                <Edit3 className="w-4 h-4" /> Edit
+                                <Edit3 className="w-4 h-4" /> PATCH
                               </button>
                               <button 
                                 onClick={() => handleDeleteEducation(e.id)}
                                 className="p-2 hover:bg-surface-container hover:text-[#FF3333] rounded-xl transition-colors text-on-surface-variant cursor-pointer flex items-center gap-1.5 text-xs font-mono"
-                                title="Delete Record"
+                                title="ERASE_RECORD"
                               >
-                                <Trash2 className="w-4 h-4" /> Erase
+                                <Trash2 className="w-4 h-4" /> PURGE
                               </button>
                             </div>
                           </div>

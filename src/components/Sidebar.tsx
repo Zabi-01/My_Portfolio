@@ -310,7 +310,7 @@ export default function Sidebar({
               <button
                 onClick={onOpenAdmin}
                 className="hover:text-secondary hover:scale-110 drop-shadow-[0_0_8px_rgba(0,255,0,0.45)] text-secondary animate-pulse transition-all cursor-pointer p-1"
-                title="Secure Administrator Control Desk"
+                title="TERMINAL_GATEWAY_ACCESS"
               >
                 <Key className="w-4.5 h-4.5" />
               </button>
@@ -318,7 +318,7 @@ export default function Sidebar({
               <button
                 onClick={onOpenAdmin}
                 className="hover:text-primary-fixed hover:scale-110 opacity-40 hover:opacity-100 transition-all cursor-pointer p-1"
-                title="System Cryptographic Portal (Locked)"
+                title="ENCRYPTED_ENTRY_POINT"
               >
                 <ShieldAlert className="w-4.5 h-4.5 text-primary-fixed/60 hover:text-primary-fixed" />
               </button>
