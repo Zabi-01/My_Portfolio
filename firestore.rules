@@ -1,0 +1,151 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net default catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- REUSABLE SECURITY PRIMITIVES ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'zabihullah9046@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Safe helpers for request structures
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- SCHEMA AND SHAPE VALIDATION BLUEPRINTS ---
+    
+    function isValidProfile(pf) {
+      return pf.keys().hasAll(['name', 'title', 'location', 'email', 'bio'])
+        && pf.keys().size() <= 15
+        && pf.name is string && pf.name.size() <= 100
+        && pf.title is string && pf.title.size() <= 150
+        && pf.location is string && pf.location.size() <= 100
+        && pf.email is string && pf.email.size() <= 150
+        && pf.bio is string && pf.bio.size() <= 500;
+    }
+
+    function isValidSkill(sk) {
+      return sk.keys().hasAll(['name', 'category', 'level', 'iconName', 'description'])
+        && sk.keys().size() <= 7
+        && sk.name is string && sk.name.size() <= 100
+        && sk.category is string && (sk.category == 'Offensive' || sk.category == 'Defensive' || sk.category == 'Core')
+        && sk.level is int && sk.level >= 0 && sk.level <= 100
+        && sk.iconName is string && sk.iconName.size() <= 50
+        && sk.description is string && sk.description.size() <= 400;
+    }
+
+    function isValidCertificate(ct) {
+      return ct.keys().hasAll(['id', 'title', 'issuer', 'status', 'colorType', 'date', 'verificationCode', 'category', 'description'])
+        && ct.keys().size() <= 12
+        && ct.id is string && ct.id.size() <= 100
+        && ct.title is string && ct.title.size() <= 200
+        && ct.issuer is string && ct.issuer.size() <= 150
+        && ct.status is string && ct.status.size() <= 50
+        && ct.colorType is string && ct.colorType.size() <= 30
+        && ct.date is string && ct.date.size() <= 50
+        && ct.verificationCode is string && ct.verificationCode.size() <= 100
+        && ct.category is string && (ct.category == 'Offensive' || ct.category == 'Defensive' || ct.category == 'General')
+        && ct.description is string && ct.description.size() <= 500;
+    }
+
+    function isValidBlog(bl) {
+      return bl.keys().hasAll(['id', 'title', 'summary', 'content', 'date', 'author', 'category'])
+        && bl.keys().size() <= 10
+        && bl.id is string && bl.id.size() <= 100
+        && bl.title is string && bl.title.size() <= 200
+        && bl.summary is string && bl.summary.size() <= 400
+        && bl.content is string && bl.content.size() <= 10000
+        && bl.date is string && bl.date.size() <= 50
+        && bl.author is string && bl.author.size() <= 100
+        && bl.category is string && bl.category.size() <= 100;
+    }
+
+    function isValidUploadedImage(im) {
+      return im.keys().hasAll(['id', 'fileName', 'dataUrl', 'uploadedAt'])
+        && im.keys().size() <= 6
+        && im.id is string && im.id.size() <= 100
+        && im.fileName is string && im.fileName.size() <= 200
+        && im.dataUrl is string && im.dataUrl.size() < 2000000 // limit payload to ~2MB
+        && im.uploadedAt is string && im.uploadedAt.size() <= 100;
+    }
+
+    function isValidProject(pr) {
+      return pr.keys().hasAll(['id', 'title', 'description', 'techStack'])
+        && pr.keys().size() <= 10
+        && pr.id is string && pr.id.size() <= 100
+        && pr.title is string && pr.title.size() <= 200
+        && pr.description is string && pr.description.size() <= 5000
+        && pr.techStack is list;
+    }
+
+    // --- SECURED COLLECTIONS ---
+
+    // 1. Portfolio Settings (Single Document)
+    match /portfolio_settings/profile {
+      allow get: if true;
+      allow create, update: if isAdmin() && isValidProfile(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 2. Skills Collection
+    match /skills/{skillId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidId(skillId) && isValidSkill(incoming());
+      allow update: if isAdmin() && isValidSkill(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 3. Certificates Collection
+    match /certs/{certId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidId(certId) && isValidCertificate(incoming());
+      allow update: if isAdmin() && isValidCertificate(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 4. Blogs Collection
+    match /blogs/{blogId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidId(blogId) && isValidBlog(incoming());
+      allow update: if isAdmin() && isValidBlog(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 5. Uploaded Images Collection ("for all" to upload and retrieve)
+    match /uploaded_images/{imageId} {
+      allow get, list: if true;
+      allow create: if isValidId(imageId) && isValidUploadedImage(incoming());
+      allow update: if isAdmin() && isValidUploadedImage(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // 6. Projects Collection
+    match /projects/{projectId} {
+      allow get, list: if true;
+      allow create: if isAdmin() && isValidId(projectId) && isValidProject(incoming());
+      allow update: if isAdmin() && isValidProject(incoming());
+      allow delete: if isAdmin();
+    }
+  }
+}

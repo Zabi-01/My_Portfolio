@@ -1,0 +1,117 @@
+{
+  "entities": {
+    "profile": {
+      "title": "Profile",
+      "description": "General profile information for the portfolio owner",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "title": { "type": "string" },
+        "location": { "type": "string" },
+        "email": { "type": "string" },
+        "github": { "type": "string" },
+        "linkedin": { "type": "string" },
+        "twitter": { "type": "string" },
+        "bio": { "type": "string" },
+        "redTeamBio": { "type": "string" },
+        "blueTeamBio": { "type": "string" },
+        "purpleTeamBio": { "type": "string" },
+        "profilePic": { "type": "string" }
+      },
+      "required": ["name", "title", "email"]
+    },
+    "skill": {
+      "title": "Skill",
+      "description": "A single technical skill or asset",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "category": { "type": "string", "enum": ["Offensive", "Defensive", "Core"] },
+        "level": { "type": "number" },
+        "iconName": { "type": "string" },
+        "description": { "type": "string" },
+        "externalUrl": { "type": "string" }
+      },
+      "required": ["name", "category", "level", "iconName", "description"]
+    },
+    "certificate": {
+      "title": "Certificate",
+      "description": "An earned credential, badge, or certification",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "issuer": { "type": "string" },
+        "status": { "type": "string" },
+        "colorType": { "type": "string" },
+        "date": { "type": "string" },
+        "verificationCode": { "type": "string" },
+        "topics": { 
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "description": { "type": "string" },
+        "category": { "type": "string", "enum": ["Offensive", "Defensive", "General"] },
+        "imageUrl": { "type": "string" },
+        "verificationUrl": { "type": "string" }
+      },
+      "required": ["id", "title", "issuer", "verificationCode", "category"]
+    },
+    "blog": {
+      "title": "BlogPost",
+      "description": "A declassified security worklog or writeup",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "summary": { "type": "string" },
+        "content": { "type": "string" },
+        "date": { "type": "string" },
+        "author": { "type": "string" },
+        "category": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "readTime": { "type": "string" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": ["id", "title", "summary", "content", "date", "author", "category"]
+    },
+    "uploaded_image": {
+      "title": "UploadedImage",
+      "description": "A publicly uploaded asset file or status badge",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "fileName": { "type": "string" },
+        "dataUrl": { "type": "string" },
+        "uploadedAt": { "type": "string" },
+        "uploaderName": { "type": "string" }
+      },
+      "required": ["id", "fileName", "dataUrl", "uploadedAt"]
+    }
+  },
+  "firestore": {
+    "/portfolio_settings/profile": {
+      "schema": "profile",
+      "description": "Dynamic layout configuration and bios"
+    },
+    "/skills/{skillId}": {
+      "schema": "skill",
+      "description": "Collection of cyber armory capabilities"
+    },
+    "/certs/{certId}": {
+      "schema": "certificate",
+      "description": "Collection of validated credentials"
+    },
+    "/blogs/{blogId}": {
+      "schema": "blog",
+      "description": "Collection of dynamic writeups"
+    },
+    "/uploaded_images/{imageId}": {
+      "schema": "uploaded_image",
+      "description": "Public shared images uploading registry"
+    }
+  }
+}
