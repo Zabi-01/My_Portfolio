@@ -427,7 +427,10 @@ export default function App() {
   };
 
   if (isBooting) {
-    return <BootSequence onComplete={() => setIsBooting(false)} />;
+    return <BootSequence onComplete={() => {
+      setIsBooting(false);
+      window.scrollTo(0, 0);
+    }} />;
   }
 
   return (

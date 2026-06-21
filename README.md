@@ -54,6 +54,11 @@ If you are exporting this project to deploy yourself on a platform like Vercel:
 3. **Environment Variables:** During the Vercel setup, add all properties from your `.env.example` as actual environment variables inside Vercel. 
    - Ensure the Firebase API Keys and config values matching the project are added perfectly to allow the admin panel and live trackers to load.
 4. **Deploy:** Click deploy. Vercel will auto-detect the Vite configuration and build your static site seamlessly!
+5. **CRITICAL - FIX FIREBASE AUTHENTICATION DOMAIN ERROR (Handshake failed):** By default, Firebase restricts logins to `localhost` and your default Firebase URL. When you deploy to Vercel, your site gets a new URL (e.g., `my-portfolio.vercel.app`).
+   - Go to your [Firebase Console](https://console.firebase.google.com/).
+   - Click on **Authentication** > **Settings** (or Settings tab in older UI) > **Authorized domains**.
+   - Click **Add domain** and enter your new Vercel domain (e.g., `my-portfolio.vercel.app`). Do not include `https://` or trailing slashes.
+   - Wait 2-3 minutes, then refresh your deployed site. The login handshake will now succeed!
 
 ## 🔧 Local Development
 
