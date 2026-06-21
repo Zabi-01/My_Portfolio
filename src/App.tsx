@@ -493,12 +493,12 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleDisplayNotification = (msg: string) => {
+  function handleDisplayNotification(msg: string) {
     setTermsNotification(msg);
     setTimeout(() => {
       setTermsNotification(null);
     }, 4000);
-  };
+  }
 
   useEffect(() => {
     if (!isBooting) {

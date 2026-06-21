@@ -67,16 +67,18 @@ async function setupServer() {
     const vite = await createViteServer({
       server: { 
         middlewareMode: true,
-        hmr: false,
+        hmr: { port: 24679 }, // Explicit port to avoid "Port already in use" errors
       },
       appType: "spa",
     });
     app.use(vite.middlewares);
     console.log("Vite middleware mounted.");
   } else {
-    const distPath = path.resolve("dist");
+    const distPath = path.join(process.cwd(), "dist");
     console.log(`Serving static files from: ${distPath}`);
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, { index: false }));
+    
+    // Catch-all route for SPA - Express 5 uses '*all' for global matching
     app.get("*all", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });

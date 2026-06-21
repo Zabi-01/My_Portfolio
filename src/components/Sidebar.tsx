@@ -175,14 +175,14 @@ export default function Sidebar({
                   id={`nav-${item.id}`}
                   onClick={() => handleNavClick(item.id)}
                   onMouseEnter={playHoverSound}
-                  className={`flex items-center gap-4 w-full text-left px-8 py-4.5 transition-all duration-300 border-l-4 cursor-pointer outline-none group/item ${
+                  className={`flex items-center gap-4 w-full text-left px-8 py-4 transition-all duration-300 border-l-4 cursor-pointer outline-none group/item ${
                     isActive
                       ? 'bg-primary-fixed/10 text-primary-fixed border-primary-fixed font-bold shadow-[inset_4px_0_12px_rgba(255,92,0,0.1)]'
                       : 'text-on-surface-variant/80 border-transparent hover:text-primary-fixed hover:bg-surface-container-low hover:border-primary-fixed/40'
                   }`}
                 >
                   <div className={`transition-transform duration-300 group-hover/item:scale-110 ${isActive ? 'scale-110' : ''}`}>
-                    <IconComponent className={`w-4.5 h-4.5 ${isActive ? 'text-primary-fixed' : ''}`} />
+                    <IconComponent className={`w-5 h-5 ${isActive ? 'text-primary-fixed' : ''}`} />
                   </div>
                   <span className="tracking-[0.1em] uppercase text-[11px] font-bold">
                     {item.label}
