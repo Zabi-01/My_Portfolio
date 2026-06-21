@@ -1,4 +1,4 @@
-import { Skill, Certificate, ProfileInfo, Project } from './types';
+import { Skill, Certificate, ProfileInfo, Project, Education } from './types';
 
 export const initialProfile: ProfileInfo = {
   name: "Zabih Ullah",
@@ -143,6 +143,18 @@ export const initialCertificates: Certificate[] = [
     description: 'Acquiring high-level cognitive resilience, structured goal management, and focus optimization strategies to ensure high-performance execution.',
     category: 'General',
     verificationUrl: 'https://coursera.org/verify/wellbeing'
+  }
+];
+
+export const initialEducation: Education[] = [
+  {
+    id: "comsats-bs-cyber",
+    institution: "COMSATS University Islamabad",
+    degree: "Bachelor of Science - BS, Cyber Security",
+    period: "January 2025 - January 2029",
+    semester: "3rd Semester Scholar",
+    description: "Engaging deeply in theoretical foundations and laboratory simulations. Dynamic studies focus heavily on safe code compiler design, memory boundary auditing, public-key cryptographic structures, network sniffing protocols, and system defenses.",
+    order: 1
   }
 ];
 

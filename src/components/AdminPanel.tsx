@@ -6,7 +6,7 @@ import {
   Download, Upload, Moon, Sun, Monitor, Palette, CaseUpper, Volume2, VolumeX,
   CloudLightning, Database, LogOut, Check, Code
 } from 'lucide-react';
-import { Skill, Certificate, ProfileInfo, BlogPost, Project } from '../types';
+import { Skill, Certificate, ProfileInfo, BlogPost, Project, Education } from '../types';
 import { playClickSound, playHoverSound, playBootAudioSequence, playAlertSecSound } from '../utils/audio';
 import ImageUploader from './ImageUploader';
 
@@ -28,6 +28,8 @@ interface AdminPanelProps {
   setProjects: (projects: Project[]) => void;
   blogs: BlogPost[];
   setBlogs: (blogs: BlogPost[]) => void;
+  educations: Education[];
+  setEducations: (educations: Education[]) => void;
   onNotify: (msg: string) => void;
   themeScheme: string;
   setThemeScheme: (scheme: string) => void;
@@ -52,6 +54,8 @@ export default function AdminPanel({
   setProjects,
   blogs,
   setBlogs,
+  educations,
+  setEducations,
   onNotify,
   themeScheme,
   setThemeScheme,
@@ -71,12 +75,36 @@ export default function AdminPanel({
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [isSeeding, setIsSeeding] = useState(false);
 
+  // Time-out logic
+  useEffect(() => {
+    if (!isUnlocked) return;
+    const interval = setInterval(() => {
+      const savedTime = localStorage.getItem('admin_login_time');
+      if (savedTime) {
+        const elapsed = Date.now() - parseInt(savedTime);
+        if (elapsed > 2 * 60 * 1000) {
+          setIsUnlocked(false);
+          localStorage.removeItem('admin_login_time');
+          onNotify("SESSION EXPIRED: Admin access timed out (2 min reached). Re-authentication required.");
+        }
+      }
+    }, 5000); // Check every 5 seconds
+    return () => clearInterval(interval);
+  }, [isUnlocked, onNotify]);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       setFirebaseUser(user);
       if (user) {
         if (user.email?.toLowerCase() === 'zabihullah9046@gmail.com') {
-          setIsUnlocked(true);
+          // Check if already expired on reload
+          const savedTime = localStorage.getItem('admin_login_time');
+          if (savedTime && (Date.now() - parseInt(savedTime) < 2 * 60 * 1000)) {
+            setIsUnlocked(true);
+          } else {
+             localStorage.removeItem('admin_login_time');
+             setIsUnlocked(false);
+          }
           setLoginError('');
         } else {
           signOut(auth);
@@ -91,6 +119,15 @@ export default function AdminPanel({
     });
     return unsub;
   }, [onClose, onNotify]);
+  
+  const setUnlock = (val: boolean) => {
+    setIsUnlocked(val);
+    if (val) {
+      localStorage.setItem('admin_login_time', Date.now().toString());
+    } else {
+      localStorage.removeItem('admin_login_time');
+    }
+  };
 
   const handleGoogleLogin = async () => {
     try {
@@ -99,12 +136,12 @@ export default function AdminPanel({
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       if (user && user.email?.toLowerCase() === 'zabihullah9046@gmail.com') {
-        setIsUnlocked(true);
+        setUnlock(true);
         setLoginError('');
         onNotify("SYSTEM ACCESS GRANTED: Firebase Google Administrator verified.");
       } else {
         await signOut(auth);
-        setIsUnlocked(false);
+        setUnlock(false);
         setLoginError("ACCESS DENIED: Unauthorized identity. Only zabihullah9046@gmail.com is permitted.");
         onNotify("ACCESS DENIED: Credentials mismatch. Redirecting...");
         setTimeout(() => {
@@ -121,7 +158,7 @@ export default function AdminPanel({
     try {
       playClickSound();
       await signOut(auth);
-      setIsUnlocked(false);
+      setUnlock(false);
       onNotify("SECURE DECOUPLING: Logged out from Firebase session.");
     } catch (err) {
       onNotify("ERROR: Failed to decouple current Firebase session.");
@@ -163,6 +200,11 @@ export default function AdminPanel({
         batchList.push(setDoc(doc(db, 'blogs', bl.id), bl));
       });
 
+      // Write Educations
+      educations.forEach((edu) => {
+        batchList.push(setDoc(doc(db, 'education', edu.id), edu));
+      });
+
       await Promise.all(batchList);
       onNotify("CLOUDSYNC COMPLETE: Seeding successful! Database records are now persistent in the cloud.");
     } catch (err: any) {
@@ -174,7 +216,7 @@ export default function AdminPanel({
   };
 
   // Active Management Tab
-  const [activeTab, setActiveTab] = useState<'profile' | 'skills' | 'certs' | 'themes' | 'blogs'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'skills' | 'certs' | 'themes' | 'blogs' | 'projects' | 'educations'>('profile');
 
   // Edit states for Profile
   const [tempProfile, setTempProfile] = useState<ProfileInfo>({ ...profile });
@@ -299,6 +341,81 @@ export default function AdminPanel({
   });
   const [tagsInput, setTagsInput] = useState('');
 
+  // Education Editing state
+  const [editingEducationId, setEditingEducationId] = useState<string | null>(null);
+  const [educationForm, setEducationForm] = useState<import('../types').Education>({
+    id: '',
+    institution: '',
+    degree: '',
+    period: '',
+    semester: '',
+    description: '',
+    order: 0
+  });
+
+  const handleSaveEducation = async () => {
+    if (!educationForm.institution || !educationForm.degree) {
+      onNotify("SYSTEM ALERT: Institution and Degree fields are required.");
+      return;
+    }
+
+    playClickSound();
+    let newId = educationForm.id;
+    if (!newId) {
+      newId = `edu-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    }
+
+    const readyEdu = { ...educationForm, id: newId };
+
+    try {
+      if (firebaseUser?.email === 'zabihullah9046@gmail.com') {
+        await setDoc(doc(db, 'education', readyEdu.id), readyEdu);
+        onNotify("SUCCESS: Education record synced to cloud successfully.");
+      } else {
+        const existing = educations.filter(e => e.id !== newId);
+        const newList = [...existing, readyEdu];
+        setEducations(newList);
+        localStorage.setItem('cyber_educations', JSON.stringify(newList));
+        onNotify("OFFLINE SUCCESS: Education saved locally.");
+      }
+      
+      setEditingEducationId(null);
+      setEducationForm({
+        id: '', institution: '', degree: '', period: '', semester: '', description: '', order: 0
+      });
+    } catch (err: any) {
+      console.warn("Save Education failed: ", err);
+      onNotify("ERROR: Failed to save education to cloud registry. Proceeding locally.");
+    }
+  };
+
+  const handleEditEducation = (edu: import('../types').Education) => {
+    playHoverSound();
+    setEditingEducationId(edu.id);
+    setEducationForm({ ...edu });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteEducation = async (idToDelete: string) => {
+    if (!confirm("Remove this education segment? This action executes permanently.")) return;
+    
+    playClickSound();
+    try {
+      if (firebaseUser?.email === 'zabihullah9046@gmail.com') {
+        await deleteDoc(doc(db, 'education', idToDelete));
+        onNotify("SUCCESS: Cloud Education segment deleted successfully.");
+      } else {
+        const filtered = educations.filter(e => e.id !== idToDelete);
+        setEducations(filtered);
+        localStorage.setItem('cyber_educations', JSON.stringify(filtered));
+        onNotify("OFFLINE SUCCESS: Education segment deleted locally.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      onNotify("ERROR: Could not finalize deletion. Access restricted.");
+    }
+  };
+
   if (!isOpen) return null;
 
   // Handle Login authentication
@@ -316,7 +433,7 @@ export default function AdminPanel({
       const result = await signInWithEmailAndPassword(auth, emailInput, password);
       const user = result.user;
       if (user && user.email?.toLowerCase() === 'zabihullah9046@gmail.com') {
-        setIsUnlocked(true);
+        setUnlock(true);
         setLoginError('');
         onNotify("SYSTEM ACCESS GRANTED: Gmail credentials decrypted and authenticated.");
       } else {
@@ -330,7 +447,7 @@ export default function AdminPanel({
           const result = await createUserWithEmailAndPassword(auth, emailInput, password);
           const user = result.user;
           if (user && user.email?.toLowerCase() === 'zabihullah9046@gmail.com') {
-            setIsUnlocked(true);
+            setUnlock(true);
             setLoginError('');
             onNotify("SYSTEM IDENTITY CREATED: New administrator profile initialized with remote sync.");
             return;
@@ -815,6 +932,17 @@ export default function AdminPanel({
                 }`}
               >
                 <Code className="w-3.5 h-3.5" /> [ Project Deployments ]
+              </button>
+
+              <button
+                onClick={() => setActiveTab('educations')}
+                className={`px-4 py-2 text-xs font-mono rounded-xl cursor-pointer transition-all flex items-center gap-2 border ${
+                  activeTab === 'educations' 
+                    ? 'bg-primary-fixed text-black border-transparent font-semibold shadow-sm' 
+                    : 'bg-surface-container-high text-on-surface-variant border-outline-variant/40 hover:text-white'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" /> [ Education Log ]
               </button>
 
               <button
@@ -1982,6 +2110,159 @@ export default function AdminPanel({
                                 onClick={() => handleDeleteBlog(b.id)}
                                 className="p-2 hover:bg-surface-container hover:text-[#FF3333] rounded-xl transition-colors text-on-surface-variant cursor-pointer flex items-center gap-1.5 text-xs font-mono"
                                 title="Delete Blog"
+                              >
+                                <Trash2 className="w-4 h-4" /> Erase
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 7: EDUCATION MANAGEMENT */}
+              {activeTab === 'educations' && (
+                <div className="space-y-8 animate-[fadeIn_0.2s_ease_out]">
+                  {/* Education Form */}
+                  <div className="p-5 bg-surface-container-low border border-outline-variant/50 rounded-2xl space-y-4">
+                    <div className="flex justify-between items-center select-none border-b border-outline-variant/30 pb-2">
+                      <span className="font-mono text-xs text-primary-fixed font-bold">
+                        {editingEducationId ? `[ EDITING ACADEMIC RECORD: "${educations.find(e => e.id === editingEducationId)?.institution}" ]` : '[ REGISTER NEW ACADEMIC RECORD ]'}
+                      </span>
+                      {editingEducationId && (
+                        <button 
+                          onClick={() => {
+                            setEditingEducationId(null);
+                            setEducationForm({
+                              id: '', institution: '', degree: '', period: '', semester: '', description: '', order: 0
+                            });
+                          }}
+                          className="text-[10px] font-mono text-[#FF3333] hover:underline cursor-pointer"
+                        >
+                          Cancel Edit
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Institution */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-mono text-primary-fixed block">INSTITUTION (e.g. COMSATS University)</label>
+                        <input 
+                          type="text" 
+                          value={educationForm.institution}
+                          onChange={(e) => setEducationForm({ ...educationForm, institution: e.target.value })}
+                          placeholder="Host Institution Name"
+                          className="w-full bg-surface-container border border-outline-variant/60 rounded-xl px-3 py-2 text-xs text-on-surface"
+                        />
+                      </div>
+
+                      {/* Degree */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-mono text-primary-fixed block">DEGREE / ROLE (e.g. BS, Cyber Security)</label>
+                        <input 
+                          type="text" 
+                          value={educationForm.degree}
+                          onChange={(e) => setEducationForm({ ...educationForm, degree: e.target.value })}
+                          placeholder="Degrees or Titles"
+                          className="w-full bg-surface-container border border-outline-variant/60 rounded-xl px-3 py-2 text-xs text-on-surface"
+                        />
+                      </div>
+
+                      {/* Period */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-mono text-primary-fixed block">PERIOD (e.g. Jan 2025 - Jan 2029)</label>
+                        <input 
+                          type="text" 
+                          value={educationForm.period}
+                          onChange={(e) => setEducationForm({ ...educationForm, period: e.target.value })}
+                          placeholder="Date range"
+                          className="w-full bg-surface-container border border-outline-variant/60 rounded-xl px-3 py-2 text-xs text-on-surface"
+                        />
+                      </div>
+
+                      {/* Semester / Status */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-mono text-primary-fixed block">SEMESTER / STATUS (e.g. 3rd Semester Scholar)</label>
+                        <input 
+                          type="text" 
+                          value={educationForm.semester}
+                          onChange={(e) => setEducationForm({ ...educationForm, semester: e.target.value })}
+                          placeholder="Current academic status"
+                          className="w-full bg-surface-container border border-outline-variant/60 rounded-xl px-3 py-2 text-xs text-on-surface"
+                        />
+                      </div>
+
+                      {/* Display Order */}
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-mono text-primary-fixed block">CHRONOLOGICAL ORDER INDEX (1 is highest)</label>
+                        <input 
+                          type="number" 
+                          value={educationForm.order}
+                          onChange={(e) => setEducationForm({ ...educationForm, order: parseInt(e.target.value) || 0 })}
+                          className="w-full bg-surface-container border border-outline-variant/60 rounded-xl px-3 py-2 text-xs text-on-surface"
+                        />
+                      </div>
+
+                      <div className="space-y-1 md:col-span-2">
+                        <label className="text-[10px] font-mono text-primary-fixed block">ACADEMIC DESCRIPTION</label>
+                        <textarea 
+                          rows={4}
+                          value={educationForm.description}
+                          onChange={(e) => setEducationForm({ ...educationForm, description: e.target.value })}
+                          placeholder="Describe key studies, focus, honors..."
+                          className="w-full bg-surface-container border border-outline-variant/60 rounded-xl px-3 py-2 text-xs font-sans resize-none leading-relaxed text-on-surface"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end p-1 select-none">
+                      <button 
+                        onClick={handleSaveEducation}
+                        className="px-5 py-2.5 bg-primary-fixed hover:bg-white text-black text-xs font-mono font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Save className="w-4 h-4" /> Save Education Record
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Existing Education Lists */}
+                  <div className="space-y-4">
+                    <h5 className="font-sans font-bold text-xs text-on-surface-variant uppercase tracking-widest select-none">Existing Academic Records ({educations?.length || 0})</h5>
+                    
+                    {(!educations || educations.length === 0) ? (
+                      <div className="p-8 border border-dashed border-outline-variant/40 rounded-2xl text-center">
+                        <BookOpen className="w-8 h-8 text-on-surface-variant/40 mx-auto mb-2 opacity-50" />
+                        <p className="text-xs font-mono text-on-surface-variant">NO ACADEMIC RECORDS FOUND IN REGISTRY</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {educations.map((e) => (
+                          <div 
+                            key={e.id} 
+                            className="p-4 bg-surface-container-low border border-outline-variant/40 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-primary-fixed/40 transition-colors"
+                          >
+                            <div className="space-y-1 flex-1 min-w-0">
+                              <h6 className="font-sans font-bold text-sm text-on-surface truncate">{e.institution} - {e.degree}</h6>
+                              <p className="text-xs text-on-surface-variant line-clamp-1 leading-relaxed">
+                                {e.period} • {e.semester}
+                              </p>
+                            </div>
+                            
+                            <div className="flex gap-2 self-end sm:self-center shrink-0 border-t sm:border-t-0 sm:pt-0 pt-2 border-outline-variant/20 select-none">
+                              <button 
+                                onClick={() => handleEditEducation(e)}
+                                className="p-2 hover:bg-surface-container hover:text-primary-fixed rounded-xl transition-colors text-on-surface-variant cursor-pointer flex items-center gap-1.5 text-xs font-mono"
+                                title="Edit Record"
+                              >
+                                <Edit3 className="w-4 h-4" /> Edit
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteEducation(e.id)}
+                                className="p-2 hover:bg-surface-container hover:text-[#FF3333] rounded-xl transition-colors text-on-surface-variant cursor-pointer flex items-center gap-1.5 text-xs font-mono"
+                                title="Delete Record"
                               >
                                 <Trash2 className="w-4 h-4" /> Erase
                               </button>

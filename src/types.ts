@@ -64,6 +64,16 @@ export interface Project {
   order?: number;
 }
 
+export interface Education {
+  id: string;
+  institution: string;
+  degree: string;
+  period: string;
+  semester: string;
+  description: string;
+  order?: number;
+}
+
 export interface BlogPost {
   id: string;
   title: string;

@@ -16,8 +16,8 @@ import ResumeBuilder from './components/ResumeBuilder';
 import AdminPanel from './components/AdminPanel';
 import BootSequence from './components/BootSequence';
 import TechDivider from './components/TechDivider';
-import { initialProfile, initialSkills, initialCertificates, initialBlogs, initialProjects } from './initialData';
-import { ProfileInfo, Skill, Certificate, BlogPost, Project } from './types';
+import { initialProfile, initialSkills, initialCertificates, initialBlogs, initialProjects, initialEducation } from './initialData';
+import { ProfileInfo, Skill, Certificate, BlogPost, Project, Education } from './types';
 import { playClickSound, playHoverSound, getSystemAudioEnabled, setSystemAudioEnabled } from './utils/audio';
 
 // Firebase dynamic sync engines and security guards
@@ -322,6 +322,19 @@ export default function App() {
     }
   });
 
+  const [educations, setEducations] = useState<Education[]>(() => {
+    try {
+      const saved = localStorage.getItem('cyber_educations');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed : initialEducation;
+      }
+      return initialEducation;
+    } catch {
+      return initialEducation;
+    }
+  });
+
   // Real-time synchronization from Firestore with failsafe fallbacks
   useEffect(() => {
     // 1. Profile Live Tracker
@@ -383,12 +396,25 @@ export default function App() {
       console.warn("Firestore subscription blocked or unpopulated projects registry:", err);
     });
 
+    // 6. Education Live Tracker
+    const unsubEducations = onSnapshot(collection(db, 'education'), (snap) => {
+      const list: import('./types').Education[] = [];
+      snap.forEach((doc) => {
+        list.push(doc.data() as import('./types').Education);
+      });
+      setEducations(list.sort((a, b) => (a.order || 0) - (b.order || 0)));
+      localStorage.setItem('cyber_educations', JSON.stringify(list));
+    }, (err) => {
+      console.warn("Firestore subscription blocked or unpopulated education registry:", err);
+    });
+
     return () => {
       unsubProfile();
       unsubSkills();
       unsubCerts();
       unsubBlogs();
       unsubProjects();
+      unsubEducations();
     };
   }, []);
 
@@ -429,7 +455,7 @@ export default function App() {
   if (isBooting) {
     return <BootSequence onComplete={() => {
       setIsBooting(false);
-      window.scrollTo(0, 0);
+      setTimeout(() => window.scrollTo(0, 0), 100);
     }} />;
   }
 
@@ -509,7 +535,7 @@ export default function App() {
             <span className="font-mono text-xs text-on-surface-variant block select-none">
               SECURE IDENTIFICATION PAYLOAD:
             </span>
-            <Terminal />
+            <Terminal profile={profile} skills={skills} certs={certs} educations={educations} />
           </motion.div>
         </motion.section>
 
@@ -532,38 +558,40 @@ export default function App() {
           </motion.div>
 
           <motion.div variants={itemVariants} className="grid grid-cols-1 gap-6">
-            <div className="glass-panel p-6 rounded-3xl border-l-4 border-l-primary-fixed cyber-glow-hover transition-all duration-300 relative overflow-hidden select-all group">
-              <div className="absolute right-4 top-4 text-primary-fixed/5 pointer-events-none">
-                <School className="w-20 h-20 rotate-12 transition-transform duration-500 group-hover:rotate-0" />
-              </div>
+            {(educations || []).map((edu) => (
+              <div key={edu.id} className="glass-panel p-6 rounded-3xl border-l-4 border-l-primary-fixed cyber-glow-hover transition-all duration-300 relative overflow-hidden select-all group">
+                <div className="absolute right-4 top-4 text-primary-fixed/5 pointer-events-none">
+                  <School className="w-20 h-20 rotate-12 transition-transform duration-500 group-hover:rotate-0" />
+                </div>
 
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <span className="font-mono text-[10px] text-secondary tracking-widest block uppercase font-bold select-none">
-                    ACCREDITED ACADEMIC HOST
-                  </span>
-                  <h4 className="text-lg font-bold text-primary-fixed">
-                    COMSATS University Islamabad
-                  </h4>
-                  <p className="text-sm text-on-surface font-semibold">
-                    Bachelor of Science - BS, Cyber Security
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <span className="font-mono text-[10px] text-secondary tracking-widest block uppercase font-bold select-none">
+                      ACCREDITED ACADEMIC HOST
+                    </span>
+                    <h4 className="text-lg font-bold text-primary-fixed">
+                      {edu.institution}
+                    </h4>
+                    <p className="text-sm text-on-surface font-semibold">
+                      {edu.degree}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-on-surface-variant select-none">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4 text-primary-fixed" /> {edu.period}
+                    </span>
+                    <span className="flex items-center gap-1.5 bg-surface-container px-2.5 py-0.5 rounded-xl border border-outline-variant/20">
+                      <Cpu className="w-3.5 h-3.5 text-secondary" /> {edu.semester}
+                    </span>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed max-w-4xl">
+                    {edu.description}
                   </p>
                 </div>
-
-                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-mono text-on-surface-variant select-none">
-                  <span className="flex items-center gap-1.5">
-                    <Calendar className="w-4 h-4 text-primary-fixed" /> January 2025 - January 2029
-                  </span>
-                  <span className="flex items-center gap-1.5 bg-surface-container px-2.5 py-0.5 rounded-xl border border-outline-variant/20">
-                    <Cpu className="w-3.5 h-3.5 text-secondary" /> 3rd Semester Scholar
-                  </span>
-                </div>
-
-                <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed max-w-4xl">
-                  Engaging deeply in theoretical foundations and laboratory simulations. Dynamic studies focus heavily on safe code compiler design, memory boundary auditing, public-key cryptographic structures, network sniffing protocols, and system defenses.
-                </p>
               </div>
-            </div>
+            ))}
           </motion.div>
         </motion.section>
 
@@ -1041,6 +1069,8 @@ export default function App() {
         setProjects={setProjects}
         blogs={blogs}
         setBlogs={setBlogs}
+        educations={educations}
+        setEducations={setEducations}
         onNotify={handleDisplayNotification}
         themeScheme={themeScheme}
         setThemeScheme={setThemeScheme}

@@ -1,8 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Terminal as TerminalIcon, Play, HelpCircle, ShieldAlert, Sparkles, CheckCircle2 } from 'lucide-react';
-import { TerminalCommand } from '../types';
+import { TerminalCommand, ProfileInfo, Skill, Certificate, Education } from '../types';
 
-export default function Terminal() {
+interface TerminalProps {
+  profile?: ProfileInfo;
+  skills?: Skill[];
+  certs?: Certificate[];
+  educations?: Education[];
+}
+
+export default function Terminal({ profile, skills, certs, educations }: TerminalProps) {
   const [history, setHistory] = useState<TerminalCommand[]>([
     { command: 'whoami', output: '', type: 'input' },
     {
@@ -12,15 +19,24 @@ STATUS: ACTIVE
 SECURE PROTOCOL DETECTED
 Type 'help' to review directory controls and security protocols, or use the quick buttons below.`,
       type: 'system',
-    },
-    {
-      command: '',
-      output: `I am Zabih Ullah, a cybersecurity student in my 3rd semester of a Bachelor's in Cybersecurity at COMSATS University Islamabad. I am passionate about protecting digital networks. I explore Purple Teaming, combining offensive (Red Team) and defensive (Blue Team) insights to secure environments.
-
-Latest objectives include labs on TryHackMe (THM), Hack The Box (HTB), network forensics, and security audits.`,
-      type: 'output',
-    },
+    }
   ]);
+
+  const [hasInitBio, setHasInitBio] = useState(false);
+
+  useEffect(() => {
+    if (profile?.bio && !hasInitBio) {
+      setHistory(prev => [
+        ...prev,
+        {
+          command: '',
+          output: profile.bio,
+          type: 'output',
+        }
+      ]);
+      setHasInitBio(true);
+    }
+  }, [profile, hasInitBio]);
 
   const [inputVal, setInputVal] = useState('');
   const terminalEndRef = useRef<HTMLDivElement | null>(null);
@@ -55,7 +71,7 @@ Latest objectives include labs on TryHackMe (THM), Hack The Box (HTB), network f
           command: '',
           output: `Available Security Consoles:
   whoami          - Inspect user identification payload
-  skills          - Query core proficiency vectors (CPP, Databases, Linux)
+  skills          - Query core proficiency vectors
   certs           - Show active verified cryptographic credentials
   educ            - Print academic qualifications timeline
   scan [target]   - Launch simulated vulnerability scanner (e.g., 'scan localhost')
@@ -68,52 +84,57 @@ Latest objectives include labs on TryHackMe (THM), Hack The Box (HTB), network f
       case 'whoami':
         newEntries.push({
           command: '',
-          output: `TARGET: ZABIH ULLAH
-ROLE: ASPIRING CYBERSECURITY PROFESSIONAL
-EDUC: COMSATS University Islamabad (BS Cybersecurity, Sem 3)
-SECTORS: Purple Teaming, Networking Security, InfoSec Audits
-SUMMARY: Exploring Red Team / Blue Team mechanics. Pursuing a professional internship to defend corporate systems dynamically. Currently solving labs on HackTheBox & TryHackMe.`,
+          output: `TARGET: ${profile?.name?.toUpperCase() || 'UNKNOWN'}
+ROLE: ${profile?.title?.toUpperCase() || 'CYBERSECURITY PROFESSIONAL'}
+SUMMARY: ${profile?.bio || 'Currently solving labs and defending networks.'}`,
           type: 'success',
         });
         break;
 
-      case 'skills':
+      case 'skills': {
+        const topSkills = skills?.slice(0, 5) || [];
+        const skillsOutput = topSkills.length > 0 
+          ? topSkills.map(s => {
+              const bars = Math.floor(s.level / 5);
+              const barStr = '='.repeat(bars) + '>';
+              return `  [${barStr.padEnd(20, ' ')}] ${s.level}%  -  ${s.name}`;
+            }).join('\n')
+          : "  No skills recorded in database.";
+        
         newEntries.push({
           command: '',
-          output: `DETERMINED SKILL Proficiencies:
-  [===================>      ] 80%  -  C++ (CPP)
-  [====================>     ] 85%  -  Data Structures & Algorithms
-  [=====================>    ] 90%  -  Linux & Bash Automations
-  [===================>      ] 82%  -  Networking & Packet Analysis
-  [==================>       ] 78%  -  DBMS & Structured SQL Queries`,
+          output: `DETERMINED SKILL Proficiencies:\n${skillsOutput}`,
           type: 'output',
         });
         break;
+      }
 
-      case 'certs':
+      case 'certs': {
+        const topCerts = certs?.slice(0, 5) || [];
+        const certsOutput = topCerts.length > 0
+          ? topCerts.map(c => `  ✔ [${c.id.toUpperCase()}] ${c.title}`).join('\n')
+          : "  No verified credentials recorded.";
+
         newEntries.push({
           command: '',
-          output: `VERIFIED AUTH CREDENTIALS:
-  ✔ [PRE-SECURITY] TryHackMe Verified Path — Completed
-  ✔ [GOOGLE-CYBER] Google Professional Cybersecurity Specialization — Verified
-  ✔ [CTF-FINALE_] CUI Tech Fest'25 CTF Finalist — Ranked Top 5
-  ✔ [NET-DEFENSE] Connect & Protect Network Security Badge — Issued
-  ✔ [WELL-BEING] Yale University: Science of Well-Being — Academic Badge`,
+          output: `VERIFIED AUTH CREDENTIALS:\n${certsOutput}`,
           type: 'success',
         });
         break;
+      }
 
-      case 'educ':
+      case 'educ': {
+        const educOutput = educations && educations.length > 0
+          ? educations.map(e => `  ${e.institution.toUpperCase()}\n  Degree: ${e.degree}\n  Range:  ${e.period} (${e.semester})\n  Focus:  ${e.description}`).join('\n\n')
+          : "  No academic records found.";
+
         newEntries.push({
           command: '',
-          output: `ACADEMIC FOOTPRINT:
-  COMSATS UNIVERSITY ISLAMABAD
-  Degree: BS Cyber Security
-  Range:  Jan 2025 - Jan 2029 (Current: 3rd Semester)
-  Focus:  Network Security, Operating Systems, Defensive Cryptography, Ethical Hacking`,
+          output: `ACADEMIC FOOTPRINT:\n${educOutput}`,
           type: 'output',
         });
         break;
+      }
 
       case 'scan': {
         const targetHost = arg || '127.0.0.1';
