@@ -54,6 +54,32 @@ export default function App() {
     return unsub;
   }, []);
 
+  // Secure Inactivity Monitor: Auto-signout admin after 120 seconds of silence
+  useEffect(() => {
+    if (!firebaseUser) return;
+
+    let inactivityTimer: NodeJS.Timeout;
+
+    const resetInactivityTimer = () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        signOut(auth);
+        handleDisplayNotification("PROTOCOL BREACH: Session terminated due to 120s inactivity.");
+        setShowAdminPanel(false);
+      }, 120000); // 120000ms = 2 minutes
+    };
+
+    const monitoringEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    monitoringEvents.forEach(evt => window.addEventListener(evt, resetInactivityTimer));
+
+    resetInactivityTimer(); // Initial boot
+
+    return () => {
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      monitoringEvents.forEach(evt => window.removeEventListener(evt, resetInactivityTimer));
+    };
+  }, [firebaseUser]);
+
   const [audioEnabled, setAudioEnabled] = useState(() => {
     return getSystemAudioEnabled();
   });
@@ -876,6 +902,7 @@ export default function App() {
             onNotify={handleDisplayNotification} 
             skills={skills}
             certs={certs}
+            educations={educations}
           />
         )}
 

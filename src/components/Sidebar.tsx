@@ -116,27 +116,56 @@ export default function Sidebar({
         className={`fixed top-0 bottom-0 left-0 h-full w-[300px] bg-surface-container-lowest border-r border-outline-variant flex flex-col z-45 shadow-2xl py-6 md:py-8`}
       >
         {/* Profile Card Block */}
-        <div className="px-8 flex flex-col items-center mb-6 mt-4 md:mt-0">
-          <div className="relative w-32 h-32 rounded-3xl overflow-hidden mb-6 border-2 border-primary-fixed shadow-[0_0_20px_rgba(255,92,0,0.35)] transition-all hover:shadow-[0_0_25px_var(--color-primary-fixed)] duration-300 group">
-            <img 
-              className="w-full h-full object-cover select-none scale-125 hover:scale-135 transition-transform duration-500 origin-center filter contrast-[1.04] brightness-[1.03]" 
-              src={headShotUrl}
-              alt="Zabih Ullah Professional Headshot" 
-              referrerPolicy="no-referrer"
+        <div className="px-8 flex flex-col items-center mb-8 mt-4 md:mt-0">
+          <div className="relative group">
+            {/* Rotating Tech Orbitals */}
+            <motion.div 
+              animate={{ rotate: 360 }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="absolute -inset-4 border border-dashed border-primary-fixed/20 rounded-full pointer-events-none"
             />
-            {/* Ambient cyber grid scanline overlay inside avatar */}
-            <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent pointer-events-none" />
+            <motion.div 
+              animate={{ rotate: -360 }}
+              transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+              className="absolute -inset-2 border border-primary-fixed/10 rounded-full pointer-events-none"
+            />
+            
+            {/* Profile Image Container */}
+            <div className="relative w-40 h-40 rounded-3xl overflow-hidden border-2 border-primary-fixed shadow-[0_0_30px_rgba(255,92,0,0.2)] transition-all hover:shadow-[0_0_40px_rgba(255,92,0,0.4)] duration-500 z-10 flex items-center justify-center bg-black/40">
+              <img 
+                className="w-full h-full object-cover select-none scale-110 hover:scale-125 transition-transform duration-700 origin-center filter contrast-[1.05] brightness-[1.05]" 
+                src={headShotUrl}
+                alt="Zabih Ullah Professional Headshot" 
+                referrerPolicy="no-referrer"
+              />
+              
+              {/* Scanline Effect */}
+              <motion.div 
+                animate={{ top: ['-10%', '110%', '-10%'] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute left-0 w-full h-[1.5px] bg-primary-fixed/60 shadow-[0_0_10px_var(--color-primary-fixed)] z-20 opacity-50"
+              />
+
+              {/* Ambient cyber grid scanline overlay inside avatar */}
+              <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-black/20 pointer-events-none z-10" />
+            </div>
+
+            {/* Corner Markers */}
+            <div className="absolute -top-1 -right-1 w-5 h-5 border-t-2 border-r-2 border-primary-fixed z-20" />
+            <div className="absolute -bottom-1 -left-1 w-5 h-5 border-b-2 border-l-2 border-primary-fixed z-20" />
+            
+            {/* Status Indicator Pulse */}
+            <div className="absolute -bottom-2 -right-2 bg-black border border-primary-fixed/40 px-2 py-0.5 rounded text-[8px] font-mono text-primary-fixed z-30 uppercase tracking-tighter">
+              id_valid
+            </div>
           </div>
-          <h1 className="font-sans text-xl font-extrabold text-on-surface text-center mb-2 select-all">
+
+          <h1 className="font-sans text-xl font-extrabold text-on-surface text-center mt-6 mb-2 select-all tracking-tight uppercase">
             {profile.name}
           </h1>
-          <p className="font-mono text-xs text-on-surface-variant text-center tracking-wide flex items-center justify-center gap-1.5 bg-surface-container-low px-3 py-1 rounded-xl border border-outline-variant/30 animate-pulse">
-            <span className="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_#00FF00]" />
-            {profile.title}
-          </p>
         </div>
 
-        <ul ref={menuListRef} className="flex flex-col w-full font-mono text-sm flex-1 overflow-y-auto">
+        <ul ref={menuListRef} className="flex flex-col w-full font-mono text-sm flex-1 overflow-y-auto py-2">
           {menuItems.map((item) => {
             const IconComponent = item.icon;
             const isActive = activeSection === item.id;
@@ -146,14 +175,24 @@ export default function Sidebar({
                   id={`nav-${item.id}`}
                   onClick={() => handleNavClick(item.id)}
                   onMouseEnter={playHoverSound}
-                  className={`flex items-center gap-4 w-full text-left px-8 py-4 transition-all duration-200 border-l-4 cursor-pointer outline-none ${
+                  className={`flex items-center gap-4 w-full text-left px-8 py-4.5 transition-all duration-300 border-l-4 cursor-pointer outline-none group/item ${
                     isActive
-                      ? 'bg-primary-fixed/10 text-primary-fixed border-primary-fixed font-semibold shadow-[source_4px_0_12px_rgba(255,92,0,0.1)]'
-                      : 'text-on-surface-variant border-transparent hover:text-primary-fixed hover:bg-surface-container-low hover:border-primary-fixed/60'
+                      ? 'bg-primary-fixed/10 text-primary-fixed border-primary-fixed font-bold shadow-[inset_4px_0_12px_rgba(255,92,0,0.1)]'
+                      : 'text-on-surface-variant/80 border-transparent hover:text-primary-fixed hover:bg-surface-container-low hover:border-primary-fixed/40'
                   }`}
                 >
-                  <IconComponent className={`w-4 h-4 ${isActive ? 'text-primary-fixed animate-pulse' : ''}`} />
-                  {item.label}
+                  <div className={`transition-transform duration-300 group-hover/item:scale-110 ${isActive ? 'scale-110' : ''}`}>
+                    <IconComponent className={`w-4.5 h-4.5 ${isActive ? 'text-primary-fixed' : ''}`} />
+                  </div>
+                  <span className="tracking-[0.1em] uppercase text-[11px] font-bold">
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <motion.div 
+                      layoutId="nav-glow"
+                      className="ml-auto w-1.5 h-1.5 rounded-full bg-primary-fixed shadow-[0_0_10px_var(--color-primary-fixed)]"
+                    />
+                  )}
                 </button>
               </li>
             );

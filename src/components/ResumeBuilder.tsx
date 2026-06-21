@@ -3,8 +3,8 @@ import {
   X, Printer, Target, Shield, HelpCircle, 
   MapPin, Mail, Phone, Calendar, Briefcase, Award, Download, Loader2, ArrowLeft
 } from 'lucide-react';
-import { ProfileInfo, Skill, Certificate } from '../types';
-import { initialProfile, initialSkills, initialCertificates } from '../initialData';
+import { ProfileInfo, Skill, Certificate, Education } from '../types';
+import { initialProfile, initialSkills, initialCertificates, initialEducation } from '../initialData';
 
 interface ResumeBuilderProps {
   onClose: () => void;
@@ -12,9 +12,10 @@ interface ResumeBuilderProps {
   onNotify?: (msg: string) => void;
   skills?: Skill[];
   certs?: Certificate[];
+  educations?: Education[];
 }
 
-export default function ResumeBuilder({ onClose, profile, onNotify, skills, certs }: ResumeBuilderProps) {
+export default function ResumeBuilder({ onClose, profile, onNotify, skills, certs, educations }: ResumeBuilderProps) {
   const [profileFocus, setProfileFocus] = useState<'all' | 'red' | 'blue'>('all');
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const printableRef = useRef<HTMLDivElement | null>(null);
@@ -39,9 +40,31 @@ export default function ResumeBuilder({ onClose, profile, onNotify, skills, cert
     }
   })();
 
-  const offensiveSkills = activeSkills.filter(s => s.category === 'Offensive');
-  const defensiveSkills = activeSkills.filter(s => s.category === 'Defensive');
-  const coreSkills = activeSkills.filter(s => s.category === 'Core');
+  const activeEducations: Education[] = educations || (() => {
+    try {
+      const saved = localStorage.getItem('cyber_educations');
+      return saved ? JSON.parse(saved) : initialEducation;
+    } catch {
+      return initialEducation;
+    }
+  })();
+
+  // Dynamically filter skills and certs based on profile focus
+  const filteredSkills = activeSkills.filter(s => {
+    if (profileFocus === 'red') return s.category === 'Offensive' || s.category === 'Core';
+    if (profileFocus === 'blue') return s.category === 'Defensive' || s.category === 'Core';
+    return true; // All
+  });
+
+  const filteredCerts = activeCerts.filter(c => {
+    if (profileFocus === 'red') return c.category === 'Offensive';
+    if (profileFocus === 'blue') return c.category === 'Defensive';
+    return true; // All
+  });
+
+  const offensiveSkills = filteredSkills.filter(s => s.category === 'Offensive');
+  const defensiveSkills = filteredSkills.filter(s => s.category === 'Defensive');
+  const coreSkills = filteredSkills.filter(s => s.category === 'Core');
 
   const handlePrint = () => {
     window.print();
@@ -480,26 +503,28 @@ export default function ResumeBuilder({ onClose, profile, onNotify, skills, cert
               <h2 className="text-sm font-mono text-secondary uppercase tracking-widest border-b border-outline-variant/20 pb-1 flex items-center gap-2">
                 <Briefcase className="w-4 h-4 text-primary-fixed" /> Education
               </h2>
-              <div className="space-y-1">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-bold text-sm text-primary-fixed">
-                    COMSATS University Islamabad
-                  </h3>
-                  <span className="font-mono text-xs text-on-surface-variant">
-                    Jan 2025 - Jan 2029
-                  </span>
-                </div>
-                <p className="text-xs text-on-surface-variant">
-                  BS Cybersecurity — Current 3rd Semester Scholar
-                </p>
-                <div className="pt-1 flex flex-wrap gap-1.5">
-                  {['Core Algorithmic Logic', 'Data Structures', 'Linux Forensics', 'Network Routing Protocols', 'Relational DBMS security'].map((t) => (
-                    <span key={t} className="px-2 py-0.5 bg-surface-container text-on-surface-[10px] font-mono rounded-xl">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              {activeEducations.length > 0 ? (
+                activeEducations.map((edu) => (
+                  <div key={edu.id} className="space-y-1">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-bold text-sm text-primary-fixed">
+                        {edu.institution}
+                      </h3>
+                      <span className="font-mono text-xs text-on-surface-variant">
+                        {edu.period}
+                      </span>
+                    </div>
+                    <p className="text-xs text-on-surface-variant">
+                      {edu.degree} — {edu.semester}
+                    </p>
+                    <p className="text-[11px] text-on-surface-variant/80 italic leading-relaxed">
+                      {edu.description}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-[11px] font-mono text-on-surface-variant italic">No education history logged.</p>
+              )}
             </div>
 
             {/* Certifications Log */}
@@ -507,9 +532,9 @@ export default function ResumeBuilder({ onClose, profile, onNotify, skills, cert
               <h2 className="text-sm font-mono text-secondary uppercase tracking-widest border-b border-outline-variant/20 pb-1 flex items-center gap-2">
                 <Award className="w-4 h-4 text-primary-fixed" /> Certified Verifications
               </h2>
-              {activeCerts.length > 0 ? (
+              {filteredCerts.length > 0 ? (
                 <ul className="space-y-2 text-xs font-mono">
-                  {activeCerts.map((cert) => (
+                  {filteredCerts.map((cert) => (
                     <li key={cert.id} className="flex justify-between items-start">
                       <div>
                         <span className="text-secondary font-semibold">✔ {cert.title}</span>
@@ -525,7 +550,7 @@ export default function ResumeBuilder({ onClose, profile, onNotify, skills, cert
                   ))}
                 </ul>
               ) : (
-                <p className="text-[11px] font-mono text-on-surface-variant italic">No certified verifications logged.</p>
+                <p className="text-[11px] font-mono text-on-surface-variant italic">No certified verifications logged for this focus.</p>
               )}
             </div>
 

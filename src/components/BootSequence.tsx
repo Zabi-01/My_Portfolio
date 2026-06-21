@@ -58,18 +58,91 @@ const MatrixRain = () => {
   return <canvas ref={canvasRef} className="absolute inset-0 opacity-[0.12] pointer-events-none" />;
 };
 
+const SystemPulse = () => {
+  return (
+    <div className="relative w-48 h-48 mb-8 flex items-center justify-center">
+      {/* Outer Rotating Circles */}
+      <motion.div 
+        animate={{ rotate: 360 }}
+        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-0 border border-t-[#00FF00]/40 border-r-transparent border-b-transparent border-l-transparent rounded-full shadow-[0_0_15px_rgba(0,255,0,0.1)]"
+      />
+      <motion.div 
+        animate={{ rotate: -360 }}
+        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-4 border border-b-[#00FF00]/30 border-t-transparent border-r-transparent border-l-transparent rounded-full"
+      />
+      
+      {/* Core Hexagon / Pulse */}
+      <div className="relative z-10 flex items-center justify-center">
+        <motion.div
+          animate={{ 
+            scale: [1, 1.1, 1],
+            opacity: [0.5, 1, 0.5]
+          }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="relative"
+        >
+          <Shield className="w-16 h-16 text-[#00FF00] drop-shadow-[0_0_15px_rgba(0,255,0,0.6)]" />
+          
+          {/* Internal data pings */}
+          <motion.div 
+            animate={{ scale: [1, 2], opacity: [0.5, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="absolute inset-0 border-2 border-[#00FF00] rounded-full blur-md"
+          />
+        </motion.div>
+
+        {/* Floating Data Bits */}
+        <div className="absolute -inset-10 pointer-events-none">
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={i}
+              animate={{ 
+                y: [0, -40, 0],
+                opacity: [0, 1, 0],
+                scale: [0.5, 1, 0.5]
+              }}
+              transition={{ 
+                duration: 3, 
+                repeat: Infinity, 
+                delay: i * 0.4,
+                ease: "easeInOut" 
+              }}
+              className="absolute text-[8px] font-mono text-[#00FF00]"
+              style={{
+                left: `${50 + 40 * Math.cos(i * Math.PI / 4)}%`,
+                top: `${50 + 40 * Math.sin(i * Math.PI / 4)}%`,
+              }}
+            >
+              {Math.random() > 0.5 ? '1' : '0'}
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Horizon Scanner */}
+      <motion.div 
+        animate={{ y: ['-100%', '200%'] }}
+        transition={{ duration: 2.5, repeat: Infinity, ease: "linear" }}
+        className="absolute h-[1px] left-[-20%] right-[-20%] bg-linear-to-r from-transparent via-[#00FF00]/50 to-transparent shadow-[0_0_10px_#00FF00] opacity-30 z-20 pointer-events-none"
+      />
+    </div>
+  );
+};
+
 export default function BootSequence({ onComplete }: BootSequenceProps) {
   const [percent, setPercent] = useState(0);
   const [logs, setLogs] = useState<string[]>([]);
   const [currentStep, setCurrentStep] = useState(0);
 
   const bootSteps = [
-    { text: "ACCESSING FIREWALL ADAPTERS...", duration: 150 },
-    { text: "DECRYPTING PRIVATE SEC_STANDARDS LABS...", duration: 180 },
-    { text: "STABILIZING RELATIONAL DATABASE SCHEMAS...", duration: 140 },
-    { text: "SECURING PORT 3000 WEBSOCKETS...", duration: 130 },
-    { text: "INITIALIZING RE-ACTIVE CYBER MATRIX...", duration: 170 },
-    { text: "DECRYPTED SYSTEM NODES SUCCESSFULLY.", duration: 130 }
+    { text: "INITIALIZING ENCRYPTED KERNEL...", duration: 200 },
+    { text: "MOUNTING SYSTEM NODES...", duration: 150 },
+    { text: "ESTABLISHING SECURE HANDSHAKE...", duration: 180 },
+    { text: "VERIFYING BIOMETRIC HASHES...", duration: 140 },
+    { text: "DECRYPTING PORTFOLIO ASSETS...", duration: 160 },
+    { text: "SYSTEM STABILIZED. ACCESS GRANTED.", duration: 120 }
   ];
 
   useEffect(() => {
@@ -129,6 +202,9 @@ export default function BootSequence({ onComplete }: BootSequenceProps) {
     <div className="fixed inset-0 z-[200] bg-[#050505] text-[#00FF00] font-mono flex flex-col items-center justify-center p-6 select-none overflow-hidden">
       {/* Matrix Code Rain Background */}
       <MatrixRain />
+
+      <SystemPulse />
+
 
       {/* Absolute CRT scanning line effect */}
       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.04),rgba(0,255,0,0.01),rgba(0,0,255,0.04))] bg-[size:100%_4px,3px_100%] z-50 opacity-30 pointer-events-none" />

@@ -16,7 +16,7 @@ export default function ContactForm({ profile }: ContactFormProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleTransmit = (e: React.FormEvent) => {
+  const handleTransmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) {
       setStatus('error');
@@ -33,20 +33,47 @@ export default function ContactForm({ profile }: ContactFormProps) {
       `ENCRYPTING MESSAGE DATA BUFFER USING AES-256 ENCRYPTION`,
       `VERIFYING ANTIVIRUS PAYLOAD HEURISTICS: PASSED`,
       `TRANSMITTING SAFE DATA PACKETS (3 NODES OVER MULTI-ROUTE PORT)...`,
-      `DELIVERY TO GATES RECIPIENT COMPLETED SUCCESSFULLY.`
     ];
 
-    let stepIdx = 0;
-    const interval = setInterval(() => {
-      if (stepIdx < transSteps.length) {
-        setTransmitLogs((prev) => [...prev, transSteps[stepIdx]]);
-        stepIdx++;
-      } else {
+    // Show initial logs
+    for (let i = 0; i < transSteps.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setTransmitLogs(prev => [...prev, transSteps[i]]);
+    }
+
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          to: profile.email
+        }),
+      });
+
+      if (response.ok) {
+        setTransmitLogs(prev => [...prev, `DELIVERY TO GATES RECIPIENT COMPLETED SUCCESSFULLY.`]);
+        await new Promise(resolve => setTimeout(resolve, 600));
         setStatus('sent');
         setFormData({ name: '', email: '', message: '' });
-        clearInterval(interval);
+      } else {
+        if (response.status === 503) {
+          setTransmitLogs(prev => [...prev, `WARNING: SMTP NOT CONFIGURED. RUNNING PORTAL SIMULATION...`]);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          setTransmitLogs(prev => [...prev, `SIMULATED PACKET DELIVERY COMPLETED.`]);
+          await new Promise(resolve => setTimeout(resolve, 600));
+          setStatus('sent');
+          setFormData({ name: '', email: '', message: '' });
+        } else {
+          const errorData = await response.json();
+          setTransmitLogs(prev => [...prev, `CRITICAL ERROR: ${errorData.error || 'HANDSHAKE_FAILED'}`]);
+          setStatus('error');
+        }
       }
-    }, 400);
+    } catch (error: any) {
+      setTransmitLogs(prev => [...prev, `FETCH_EXCEPTION: SOCKET_TERMINATED_ABRUPTLY`]);
+      setStatus('error');
+    }
   };
 
   return (

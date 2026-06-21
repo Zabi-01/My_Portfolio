@@ -34,6 +34,15 @@ export default function Certifications({ certs = [] }: CertificationsProps) {
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
   const [verifyStatus, setVerifyStatus] = useState<'idle' | 'scanning' | 'passed'>('idle');
   const [verifyLogs, setVerifyLogs] = useState<string[]>([]);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'red' | 'blue'>('all');
+
+  // Filter certs based on category
+  const filteredCerts = certs.filter(cert => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'red') return cert.category === 'Offensive';
+    if (activeFilter === 'blue') return cert.category === 'Defensive';
+    return true;
+  });
 
   // Simulated cryptographic verification timeline
   useEffect(() => {
@@ -116,6 +125,49 @@ export default function Certifications({ certs = [] }: CertificationsProps) {
 
   return (
     <div className="space-y-8">
+      {/* Search & Category Filter Interface */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-surface-container-low p-4 rounded-3xl border border-outline-variant/30 select-none">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setActiveFilter('all')}
+            className={`px-3 py-1.5 text-xs font-mono rounded-xl cursor-pointer transition-all ${
+              activeFilter === 'all'
+                ? 'bg-primary-fixed text-black font-semibold'
+                : 'bg-surface-container text-on-surface-variant border border-outline-variant/30 hover:text-white'
+            }`}
+          >
+            [ All Clusters ]
+          </button>
+          
+          <button
+            onClick={() => setActiveFilter('red')}
+            className={`px-3 py-1.5 text-xs font-mono rounded-xl cursor-pointer transition-all ${
+              activeFilter === 'red'
+                ? 'bg-error text-white font-semibold'
+                : 'bg-surface-container text-[#FF5555] border border-red-500/15 hover:bg-error/10 hover:text-white'
+            }`}
+          >
+            [ Red Team / Offensive ]
+          </button>
+
+          <button
+            onClick={() => setActiveFilter('blue')}
+            className={`px-3 py-1.5 text-xs font-mono rounded-xl cursor-pointer transition-all ${
+              activeFilter === 'blue'
+                ? 'bg-secondary text-black font-semibold'
+                : 'bg-surface-container text-secondary border border-[#00ff00]/15 hover:bg-secondary/10 hover:text-white'
+            }`}
+          >
+            [ Blue Team / Defensive ]
+          </button>
+        </div>
+
+        <div className="font-mono text-[11px] text-on-surface-variant flex items-center gap-1">
+          <span className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse" />
+          ACTIVE_CREDENTIALS: <span className="text-secondary font-bold font-mono">{filteredCerts.length}</span>
+        </div>
+      </div>
+
       {/* Certifications Grid Card Deck */}
       <motion.div 
         variants={containerCertVariants}
@@ -124,7 +176,7 @@ export default function Certifications({ certs = [] }: CertificationsProps) {
         viewport={{ once: true, margin: "-50px" }}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
-        {certs.map((cert) => {
+        {filteredCerts.map((cert) => {
           const colors = getColorClasses(cert.colorType);
           return (
             <motion.div

@@ -7,6 +7,7 @@ import {
   CloudLightning, Database, LogOut, Check, Code
 } from 'lucide-react';
 import { Skill, Certificate, ProfileInfo, BlogPost, Project, Education, Competency } from '../types';
+import { initialProfile, initialSkills, initialCertificates, initialBlogs, initialProjects, initialEducation } from '../initialData';
 import { playClickSound, playHoverSound, playBootAudioSequence, playAlertSecSound } from '../utils/audio';
 import ImageUploader from './ImageUploader';
 
@@ -1846,6 +1847,22 @@ export default function AdminPanel({
                           <Download className="w-4 h-4" /> Export Ledger Configuration
                         </button>
 
+                        <button
+                          onClick={handleSeedCloudDatabase}
+                          disabled={isSeeding}
+                          className="flex-1 py-3 bg-primary-fixed/20 text-primary-fixed font-semibold font-mono text-xs rounded-xl hover:bg-primary-fixed hover:text-black hover:scale-101 active:scale-98 cursor-pointer transition-all flex items-center justify-center gap-2 select-none border border-primary-fixed/40 disabled:opacity-50 disabled:cursor-wait"
+                        >
+                          {isSeeding ? (
+                            <>
+                              <CloudLightning className="w-4 h-4 animate-spin" /> Seeding DB...
+                            </>
+                          ) : (
+                            <>
+                              <Database className="w-4 h-4" /> Seed Firestore (DB)
+                            </>
+                          )}
+                        </button>
+                        
                         <button
                           onClick={() => fileInputRef.current?.click()}
                           className="flex-1 py-3 bg-surface-container-high text-white font-semibold font-mono text-xs rounded-xl hover:bg-surface-container-highest hover:scale-101 active:scale-98 cursor-pointer transition-all flex items-center justify-center gap-2 select-none border border-outline-variant/60 hover:border-primary-fixed"
