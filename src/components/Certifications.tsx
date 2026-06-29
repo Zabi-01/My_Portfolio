@@ -37,12 +37,27 @@ export default function Certifications({ certs = [] }: CertificationsProps) {
   const [activeFilter, setActiveFilter] = useState<'all' | 'red' | 'blue'>('all');
 
   // Filter certs based on category
-  const filteredCerts = certs.filter(cert => {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'red') return cert.category === 'Offensive';
-    if (activeFilter === 'blue') return cert.category === 'Defensive';
-    return true;
-  });
+  const parseDate = (dateStr: string): number => {
+    const months: Record<string, number> = {
+      january: 0, february: 1, march: 2, april: 3, may: 4, june: 5,
+      july: 6, august: 7, september: 8, october: 9, november: 10, december: 11
+    };
+    const parts = dateStr.trim().toLowerCase().split(/[\s,]+/);
+    const month = months[parts[0]];
+    const year = parseInt(parts[1]);
+    if (!isNaN(month) && !isNaN(year)) return new Date(year, month).getTime();
+    const fallback = new Date(dateStr).getTime();
+    return isNaN(fallback) ? 0 : fallback;
+  };
+
+  const filteredCerts = certs
+    .filter(cert => {
+      if (activeFilter === 'all') return true;
+      if (activeFilter === 'red') return cert.category === 'Offensive';
+      if (activeFilter === 'blue') return cert.category === 'Defensive';
+      return true;
+    })
+    .sort((a, b) => parseDate(b.date) - parseDate(a.date));
 
   // Simulated cryptographic verification timeline
   useEffect(() => {
