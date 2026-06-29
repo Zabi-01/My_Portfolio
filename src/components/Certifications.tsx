@@ -268,6 +268,18 @@ export default function Certifications({ certs = [] }: CertificationsProps) {
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto max-h-[80vh] space-y-6">
 
+              {/* Cert Image */}
+              {selectedCert.imageUrl && (
+                <div className="w-full h-44 rounded-2xl overflow-hidden border border-outline-variant/50 bg-black flex items-center justify-center">
+                  <img
+                    src={selectedCert.imageUrl}
+                    alt={selectedCert.title}
+                    className="w-full h-full object-contain p-2"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                </div>
+              )}
 
               {/* Header Info */}
               <div className="space-y-1">
