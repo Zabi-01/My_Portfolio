@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  ShieldCheck, Shield, Lock, Award, Cpu, CheckCircle2, 
+  ShieldCheck, Shield, Lock, Cpu, CheckCircle2, 
   X, Activity, RefreshCw, Terminal, ExternalLink, Hash, Bookmark 
 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -170,10 +170,10 @@ export default function Certifications({ certs = [] }: CertificationsProps) {
 
       {/* Certifications Grid Card Deck */}
       <motion.div 
+        key={activeFilter}
         variants={containerCertVariants}
         initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-50px" }}
+        animate="visible"
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {filteredCerts.map((cert) => {
@@ -199,20 +199,7 @@ export default function Certifications({ certs = [] }: CertificationsProps) {
                   </span>
                 </div>
 
-                {/* Card Thumbnail Image (If provided) */}
-                {cert.imageUrl && (
-                  <div className="w-full h-32 rounded-2xl overflow-hidden border border-outline-variant/30 bg-black/40 mb-3 flex items-center justify-center select-none relative z-10 shrink-0">
-                    <img 
-                      src={cert.imageUrl} 
-                      alt={cert.title} 
-                      className="w-full h-full object-contain"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                )}
+
 
                 {/* Certificate Title */}
                 <h4 className="font-sans font-bold text-base text-on-surface hover:text-[#7df4ff] transition-colors mb-2 flex-1 relative z-10 md:line-clamp-2">
@@ -280,39 +267,7 @@ export default function Certifications({ certs = [] }: CertificationsProps) {
 
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto max-h-[80vh] space-y-6">
-              {/* Dynamic Image / Custom Cyber Vector Fallback Badge */}
-              {selectedCert.imageUrl ? (
-                <div className="w-full h-44 rounded-2xl overflow-hidden border border-outline-variant/50 bg-black flex items-center justify-center relative group">
-                  <img 
-                    src={selectedCert.imageUrl} 
-                    alt={selectedCert.title} 
-                    className="w-full h-full object-contain p-2"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const fallback = e.currentTarget.parentElement?.querySelector('.image-fallback-badge');
-                      if (fallback) fallback.classList.remove('hidden');
-                    }}
-                  />
-                  {/* Inline Backup badge overlay for broken URL security protection */}
-                  <div className="image-fallback-badge hidden absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-surface-container-low to-surface-container-high text-on-surface">
-                    <Award className="w-12 h-12 text-[#FF5C00] animate-pulse" />
-                    <span className="font-mono text-[10px] text-primary-fixed tracking-widest uppercase font-semibold">SECURE REPLICA BADGE APPLIED</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="w-full h-44 rounded-2xl border border-outline-variant/30 bg-gradient-to-br from-surface-container-low to-surface-container-high flex flex-col items-center justify-center gap-3 relative select-none">
-                  {/* Sleek, premium tech security graphic fallback */}
-                  <div className="absolute right-4 top-4 font-mono text-[9px] text-[#FF5C00]/25">SEC_GRADE: INF_A</div>
-                  <div className="w-16 h-16 rounded-full bg-[#FF5C00]/10 border border-[#FF5C00]/25 flex items-center justify-center shadow-lg shadow-[#FF5C00]/5">
-                    <ShieldCheck className="w-8 h-8 text-[#FF5C00] animate-bounce" />
-                  </div>
-                  <div className="text-center space-y-1">
-                    <span className="font-mono text-xs block text-[#FF5C00] uppercase tracking-widest font-extrabold pb-0.5">Verified Cyber Certificate</span>
-                    <span className="font-mono text-[10px] text-on-surface-variant block">Issuer Signatory Hash: {selectedCert.verificationCode || 'THM-SEC-VALID'}</span>
-                  </div>
-                </div>
-              )}
+
 
               {/* Header Info */}
               <div className="space-y-1">
